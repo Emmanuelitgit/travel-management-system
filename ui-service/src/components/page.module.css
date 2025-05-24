@@ -1,0 +1,48 @@
+/* Navbar styles here*/
+
+.container {
+  border: 1px solid lightgray;
+  width: 100%;
+  padding: 10px;
+}
+
+.searchIcon {
+  color: black;
+  border-radius: 5px;
+  position: absolute;
+  left: 33%;
+}
+
+.searchInput {
+  outline: none;
+  padding: 2px;
+  border-radius: 5px;
+  width: 80%;
+  border: 1px solid gray;
+}
+
+.anchor {
+  padding: 1.5px;
+}
+
+.anchor:hover {
+  background-color: lightgray;
+  border-radius: 5px;
+  padding: 1.5px;
+}
+
+/* Sidebar styles start here*/
+.sidebarContainer {
+  position: absolute;
+  right: 0;
+  left: 2%;
+  top: 6%;
+  flex: 1;
+  padding: 20px;
+  height: 100vh;
+}
+
+.border {
+  border-left: 1px solid lightgray;
+  height: 100vh;
+}

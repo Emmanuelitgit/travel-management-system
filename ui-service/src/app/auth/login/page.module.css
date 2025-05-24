@@ -1,0 +1,128 @@
+.container {
+  color: black;
+  display: flex;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 12%;
+  margin-left: 16%;
+}
+
+.welcome {
+  margin-left: 15%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.welcome h1 {
+  color: dodgerblue;
+}
+
+.welcome h3 {
+  color: dodgerblue;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  height: 100vh;
+  width: 50%;
+}
+
+.titleText {
+  font-weight: 600;
+  font-size: 30px;
+}
+
+.inputItem {
+  width: 60%;
+  position: relative;
+  margin-left: 15%;
+}
+
+.inputItem input {
+  padding: 10px;
+  width: 100%;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  outline: none;
+  color: black;
+  padding-left: 40px;
+  border: 1.5px solid black;
+}
+.inputItem input:focus {
+  border: 1.5px solid slateblue;
+}
+
+.inputUserIcon {
+  color: black;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.inputEmailIcon {
+  color: black;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.inputPasswordIcon {
+  color: black;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.inputBtnContainer {
+  margin-left: 10%;
+}
+
+.inputBtn {
+  background-color: dodgerblue;
+  width: 67%;
+  padding: 10px;
+  outline: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5%;
+  border-radius: 3px;
+  color: white;
+}
+
+.imageContainer {
+  width: 50%;
+}
+
+.imageContainer img {
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid #f0f0f0;
+}
+
+.dontHaveAccountContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+.dontHaveAccount {
+  margin-left: 16%;
+}

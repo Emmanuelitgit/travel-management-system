@@ -1,0 +1,52 @@
+.homeBackgroundImage {
+  background-image: url("https://bsmedia.business-standard.com/_media/bs/img/article/2024-08/07/full/1722995892-9811.jpg?im=FeatureCrop,size=(826,465)");
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  right: 0;
+  width: 100%;
+  position: fixed;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.searchContainer {
+  background-color: white;
+  height: 20vh;
+  width: 70%;
+  padding: 15px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.inputContainer input {
+  outline: none;
+  border: 1px solid lightgray;
+  width: 35%;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.categoryContainer {
+  display: flex;
+  gap: 40px;
+}
+/* .tripClass {
+  width: 100%;
+}
+.tripClass select {
+  width: 13%;
+} */

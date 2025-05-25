@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "@/app/flights/page.module.css";
 import Navbar from "../../components/Navbar";
+import FlightCard from "@/components/FlightCard";
 
 const page = () => {
   return (
@@ -42,6 +43,13 @@ const page = () => {
               Serach
             </button>
           </div>
+        </div>
+        <div className={styles.flightsContainer}>
+          <div className={styles.filterButtonContainer}>
+            <button className={styles.filterButton}>Rounded Trip</button>
+            <button className={styles.filterButtonGray}>One Way</button>
+          </div>
+          <FlightCard />
         </div>
       </div>
     </div>

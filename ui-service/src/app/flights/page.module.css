@@ -5,7 +5,7 @@
   height: 100vh;
   right: 0;
   width: 100%;
-  position: fixed;
+  /* position: fixed; */
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -51,3 +51,145 @@
 .tripClass select {
   width: 13%;
 } */
+
+/* flight cards styles strt from here*/
+.flightsContainer {
+  background-color: lightgray;
+  height: 100%;
+  width: 100%;
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.flightsCardContainer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: center;
+  gap: 30px;
+}
+
+.flightsCard {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 40%;
+  align-items: center;
+  justify-content: center;
+}
+
+.filterButtonContainer {
+  display: flex;
+  align-items: center;
+  width: 82%;
+  gap: 30px;
+  justify-content: center;
+  background-color: white;
+  border-radius: 5px;
+}
+
+.filterButton {
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity, 1));
+  padding: 4px;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  width: 100%;
+}
+
+.filterButtonGray {
+  padding: 4px;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.flightItemsMainContainer {
+  display: flex;
+  gap: 15px;
+}
+
+.flightItemsContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.departureDestinationContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.departure {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.departure h1 {
+  font-weight: 600;
+  font-size: 25px;
+}
+
+.destination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.destination h1 {
+  font-weight: 600;
+  font-size: 25px;
+}
+.timeItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: center;
+}
+
+.tripTimeBorder {
+  border: 1px solid lightgray;
+  width: 70px;
+}
+
+.tripItems {
+  display: flex;
+  gap: 40x;
+  /* width: 100%; */
+  align-items: center;
+  /* justify-content: space-around; */
+}
+
+.tripItems {
+  font-size: 12px;
+}
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 20%;
+}
+
+.priceContainer button {
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity, 1));
+  padding: 4px;
+  outline: none;
+  border: none;
+  border-radius: 3px;
+  color: white;
+  width: 100%;
+}

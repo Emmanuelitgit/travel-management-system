@@ -26,9 +26,9 @@ public class UserPayloadDTO {
     @Size(max = 10, min = 10)
     private String phone;
     @NotNull(message = "password cannot be null")
-    @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).*$",
-            message = "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character")
+    @Size(min = 4, max = 20, message = "Password must be between 8 and 20 characters")
+//    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).*$",
+//            message = "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character")
     private String password;
     @NotNull(message = "username cannot be null")
     private String username;

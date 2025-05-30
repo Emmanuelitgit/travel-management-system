@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
            RoleSetup role = roleSetupOptional.get();
            userRoleServiceImpl.saveUserRole(userResponse.getId(), userPayloadDTO.getRole());
            log.info("User created successfully:->>>>>>");
-           keycloakService.saveUserToKeycloak(user);
+           keycloakService.saveUserToKeycloak(userPayloadDTO);
            UserDTO userDTO = DTOMapper.toUserDTO(userResponse, role.getName());
            ResponseDTO  response = AppUtils.getResponseDto("user record added successfully", HttpStatus.CREATED, userDTO);
            return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -167,6 +167,9 @@ public class UserServiceImpl implements UserService {
             existingData.setUsername(userPayload.getUsername() !=null ? userPayload.getUsername() : existingData.getUsername());
             existingData.setPhone(userPayload.getPhone() !=null ? userPayload.getPhone() : existingData.getPhone());
             User userResponse = userRepo.save(existingData);
+
+            // saving user in keycloak
+            keycloakService.updateUserInKeycloak(userPayload);
 
             // getting the role name from the role setup db
            RoleSetup role =  new RoleSetup();

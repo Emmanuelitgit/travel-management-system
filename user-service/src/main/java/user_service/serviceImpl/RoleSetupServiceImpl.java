@@ -1,6 +1,7 @@
 package user_service.serviceImpl;
 
 import user_service.dto.ResponseDTO;
+import user_service.external.KeycloakService;
 import user_service.models.RoleSetup;
 import user_service.repo.RoleSetupRepo;
 import user_service.service.RoleSetupService;
@@ -19,10 +20,12 @@ import java.util.UUID;
 public class RoleSetupServiceImpl implements RoleSetupService {
 
     private final RoleSetupRepo roleSetupRepo;
+    private final KeycloakService keycloakService;
 
     @Autowired
-    public RoleSetupServiceImpl(RoleSetupRepo roleSetupRepo) {
+    public RoleSetupServiceImpl(RoleSetupRepo roleSetupRepo, KeycloakService keycloakService) {
         this.roleSetupRepo = roleSetupRepo;
+        this.keycloakService = keycloakService;
     }
 
     @Override
@@ -33,6 +36,7 @@ public class RoleSetupServiceImpl implements RoleSetupService {
               return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
           }
           RoleSetup roleSetupRes = roleSetupRepo.save(roleSetup);
+          keycloakService.saveRoleToKeycloak(roleSetup);
           ResponseDTO  response = AppUtils.getResponseDto("role record added successfully", HttpStatus.CREATED, roleSetupRes);
           return new ResponseEntity<>(response, HttpStatus.CREATED);
       }catch (Exception e) {
@@ -62,6 +66,7 @@ public class RoleSetupServiceImpl implements RoleSetupService {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @Override
     public ResponseEntity<ResponseDTO> deleteRole(UUID roleId) {

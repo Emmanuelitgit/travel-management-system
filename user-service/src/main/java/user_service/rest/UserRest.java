@@ -32,12 +32,17 @@ public class UserRest {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ResponseDTO> getUserBuId(@PathVariable UUID userId){
+    public ResponseEntity<ResponseDTO> getUserById(@PathVariable UUID userId){
         return userService.getUserById(userId);
     }
 
     @PutMapping("/{userId}")
     public ResponseEntity<ResponseDTO> updateUser(@RequestBody @Valid UserPayloadDTO user, @PathVariable UUID userId){
         return userService.updateUser(user, userId);
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<ResponseDTO> removeUser(@PathVariable UUID userId){
+        return userService.removeUser(userId);
     }
 }

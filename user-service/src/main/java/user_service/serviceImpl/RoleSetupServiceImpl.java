@@ -1,6 +1,8 @@
 package user_service.serviceImpl;
 
+import jakarta.transaction.Transactional;
 import user_service.dto.ResponseDTO;
+import user_service.exception.NotFoundException;
 import user_service.external.KeycloakService;
 import user_service.models.RoleSetup;
 import user_service.repo.RoleSetupRepo;
@@ -28,6 +30,14 @@ public class RoleSetupServiceImpl implements RoleSetupService {
         this.keycloakService = keycloakService;
     }
 
+    /**
+     * @description This method is used to save role setup record.
+     * @param roleSetup
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 27h April 2025
+     */
+    @Transactional
     @Override
     public ResponseEntity<ResponseDTO> saveRole(RoleSetup roleSetup) {
       try {
@@ -45,11 +55,33 @@ public class RoleSetupServiceImpl implements RoleSetupService {
       }
     }
 
+    /**
+     * @description This method is used to update role setup record.
+     * @param roleSetup
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 27h April 2025
+     */
+    @Transactional
     @Override
     public ResponseEntity<ResponseDTO> updateRole(RoleSetup roleSetup, UUID roleId) {
-        return null;
+
+        RoleSetup existingRoleSetup = roleSetupRepo.findById(roleId)
+                .orElseThrow(()-> new NotFoundException("role setup record not found"));
+
+        existingRoleSetup.setName(roleSetup.getName() != null? roleSetup.getName():existingRoleSetup.getName());
+        keycloakService.updateRole(existingRoleSetup.getName(), roleSetup.getName());
+        ResponseDTO  response = AppUtils.getResponseDto("role records updated successfully", HttpStatus.OK, roleSetup);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    /**
+     * @description This method is used to fetch ole setup records given the id.
+     * @param roleId
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 27h April 2025
+     */
     @Override
     public ResponseEntity<ResponseDTO> findRoleById(UUID roleId) {
         try {
@@ -67,12 +99,30 @@ public class RoleSetupServiceImpl implements RoleSetupService {
         }
     }
 
-
+    /**
+     * @description This method is used to delete role setup record.
+     * @param roleId
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 27h April 2025
+     */
     @Override
     public ResponseEntity<ResponseDTO> deleteRole(UUID roleId) {
-        return null;
+        RoleSetup roleSetup = roleSetupRepo.findById(roleId)
+                .orElseThrow(()-> new NotFoundException("role setup record not found"));
+
+        roleSetupRepo.deleteById(roleSetup.getId());
+        keycloakService.removeRoleFromKeycloak(roleSetup.getName());
+        ResponseDTO  response = AppUtils.getResponseDto("role records deleted successfully", HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    /**
+     * @description This method is used to fetch all role setups.
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 27h April 2025
+     */
     @Override
     public ResponseEntity<ResponseDTO> getRoles() {
         try{

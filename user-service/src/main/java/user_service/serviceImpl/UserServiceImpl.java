@@ -154,6 +154,7 @@ public class UserServiceImpl implements UserService {
      * @auther Emmanuel Yidana
      * @createdAt 27h April 2025
      */
+    @Transactional
     @Override
     public ResponseEntity<ResponseDTO> updateUser(UserPayloadDTO userPayload, UUID userId) {
         try{
@@ -168,9 +169,6 @@ public class UserServiceImpl implements UserService {
             existingData.setPhone(userPayload.getPhone() !=null ? userPayload.getPhone() : existingData.getPhone());
             User userResponse = userRepo.save(existingData);
 
-            // saving user in keycloak
-            keycloakService.updateUserInKeycloak(userPayload);
-
             // getting the role name from the role setup db
            RoleSetup role =  new RoleSetup();
             if (userPayload.getRole() != null){
@@ -178,6 +176,9 @@ public class UserServiceImpl implements UserService {
                         .orElseThrow(()-> new NotFoundException("role record not found"));
                 role.setName(roleData.getName());
             }
+
+            // saving user in keycloak
+            keycloakService.updateUserInKeycloak(userPayload);
 
             log.info("user updated successfully:->>>>>>");
             UserDTO userDTOResponse = DTOMapper.toUserDTO(userResponse, role.getName());
@@ -197,6 +198,7 @@ public class UserServiceImpl implements UserService {
      * @auther Emmanuel Yidana
      * @createdAt 27h April 2025
      */
+    @Transactional
     @Override
     public ResponseEntity<ResponseDTO> removeUser(UUID userId) {
         try {
@@ -207,6 +209,7 @@ public class UserServiceImpl implements UserService {
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
             userRepo.deleteById(userId);
+            keycloakService.removeUserFromKeyCloak(userOptional.get().getEmail());
             log.info("user removed successfully:->>>>>>");
             ResponseDTO  response = AppUtils.getResponseDto("user record removed successfully", HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);

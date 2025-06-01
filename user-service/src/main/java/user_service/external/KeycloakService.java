@@ -5,19 +5,15 @@ import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleResource;
 import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import user_service.dto.UserPayloadDTO;
 import user_service.exception.BadRequestException;
 import user_service.exception.NotFoundException;
 import user_service.models.RoleSetup;
-import user_service.models.User;
 import user_service.repo.RoleSetupRepo;
 
 import javax.ws.rs.core.Response;
@@ -31,15 +27,13 @@ public class KeycloakService {
 
     private final KeycloakConfig keycloakConfig;
     private final RoleSetupRepo roleSetupRepo;
-    private final UserPayloadDTO userPayloadDTO;
     private RealmResource realmInstance;
 
     @Autowired
-    public KeycloakService(KeycloakConfig keycloakConfig, RoleSetupRepo roleSetupRepo, UserPayloadDTO userPayloadDTO) {
+    public KeycloakService(KeycloakConfig keycloakConfig, RoleSetupRepo roleSetupRepo) {
         this.keycloakConfig = keycloakConfig;
         this.realmInstance = keycloakConfig.getInstance().realm("travelManagement");
         this.roleSetupRepo = roleSetupRepo;
-        this.userPayloadDTO = userPayloadDTO;
     }
 
 
@@ -85,7 +79,6 @@ public class KeycloakService {
 
     }
 
-
     /**
      * @description This method is used to update user records in keycloak given the id and the details to be updated.
      * @param userDto
@@ -108,12 +101,13 @@ public class KeycloakService {
         userRepresentation.setEmail(userDto.getEmail());
         userRepresentation.setEmailVerified(true);
 
-        // Update password (optional)
-        if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
-            CredentialRepresentation credential = credentialRepresentation(userDto.getPassword());
-            userResource.resetPassword(credential);
-        }
+//        // Update password (optional)
+//        if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
+//            CredentialRepresentation credential = credentialRepresentation(userDto.getPassword());
+//            userResource.resetPassword(credential);
+//        }
 
+        log.info("user representation:->>>{}", userRepresentation.getEmail()+userRepresentation.getFirstName());
         // Update user in Keycloak
         userResource.update(userRepresentation);
 
@@ -125,16 +119,27 @@ public class KeycloakService {
 
 
         // Add the new role
-        assignRole(userKeycloakData.get(0).getId(), userPayloadDTO.getRole());
+        assignRole(userKeycloakData.get(0).getId(), userDto.getRole());
 
-        log.info("User {} updated with new role {}", userDto.getUsername(), getRoleName(userPayloadDTO.getRole()));
+        log.info("User {} updated with new role {}", userDto.getUsername(), getRoleName(userDto.getRole()));
     }
 
-    public void removeUserFromKeycloak(String userId){
-        UserResource userResource = realmInstance.users().get(userId);
-        userResource.remove();
+    /**
+     * @description This method is used to remove user record from keycloak given the user email.
+     * @param email
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 27h May 2025
+     */
+    public void removeUserFromKeyCloak(String email){
+        if (email ==null){
+            throw new BadRequestException("email cannot be null to search for user in keycloak");
+        }
+        List<UserRepresentation> userRepresentations = realmInstance.users().search(email, 0,10);
+        if (!userRepresentations.isEmpty()){
+            realmInstance.users().get(userRepresentations.get(0).getId()).remove();
+        }
     }
-
 
     /**
      * @description a helper method used to assign a role to user in keycloak given the user keycloak id and role id from db.
@@ -158,7 +163,6 @@ public class KeycloakService {
         log.info("Assigned role {} to user {}", role.getName(), userId);
     }
 
-
     /**
      * @description This method is used to save a new role in keycloak.
      * @param roleSetup
@@ -181,6 +185,33 @@ public class KeycloakService {
         roleRepresentation.setClientRole(true);
 
         realmInstance.roles().create(roleRepresentation);
+    }
+
+    /**
+     * @description This method is used to remove a role setup from keycloak.
+     * @param role
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 30h May 2025
+     */
+    public void removeRoleFromKeycloak(String role){
+        RoleResource roleResource = realmInstance.roles().get(role);
+        roleResource.remove();
+    }
+
+    /**
+     * @description This method is used to update a role setup from keycloak.
+     * @param role
+     * @param updatedRole
+     * @return
+     * @auther Emmanuel Yidana
+     * @createdAt 30h May 2025
+     */
+    public void updateRole(String role, String updatedRole){
+        RoleResource roleResource = realmInstance.roles().get(role);
+        RoleRepresentation roleRepresentation = roleResource.toRepresentation();
+        roleRepresentation.setName(updatedRole);
+        roleResource.update(roleRepresentation);
     }
 
     /**

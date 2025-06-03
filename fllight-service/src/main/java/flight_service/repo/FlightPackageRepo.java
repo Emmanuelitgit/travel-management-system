@@ -12,8 +12,8 @@ import java.util.UUID;
 @Repository
 public interface FlightPackageRepo extends JpaRepository<FlightPackage, UUID> {
 
-    @Query(value = "SELECT al.name AS airline, cl.name AS class, st.name AS seat_type, fp.id," +
-            "fp.departure_date, fp.arrival_date, fp.available_seats, fp.trip_type, " +
+    @Query(value = "SELECT al.name AS airline, cl.name AS class_type, st.name AS seat_type, BIN_TO_UUID(fp.id)," +
+            "fp.available_seats, fp.trip_type, fb.non_stop, " +
             "fp.description, fp.price, ap1.name AS departure, ap2.name AS destination " +
             "FROM flight_package_tb fp " +
             "JOIN flight_airline_type_tb al ON fp.airline_id=al.id " +

@@ -1,6 +1,7 @@
 package flight_service.serviceImpl;
 
 import flight_service.dto.ResponseDTO;
+import flight_service.dto.projections.FlightPackageProjection;
 import flight_service.exception.BadRequestException;
 import flight_service.exception.NotFoundException;
 import flight_service.exception.ServerException;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -38,9 +40,26 @@ public class FlightPackageServiceImpl implements FlightPackageService {
     }
 
 
+    /**
+     * @description Fetches all flight package records from the database.
+     * @return ResponseEntity containing a list of flight package records and status information.
+     * @author Emmanuel Yidana
+     * @createdAt 3rd, June 2025
+     */
     @Override
     public ResponseEntity<ResponseDTO> findAll() {
-        return null;
+        try {
+            List<FlightPackageProjection> flightPackageProjectionList = flightPackageRepo.fetchAllFlightPackages();
+            log.info("packages:->>>>{}", flightPackageProjectionList);
+            if (flightPackageProjectionList.isEmpty()){
+                throw new NotFoundException("no flight package record found");
+            }
+
+            ResponseDTO response = AppUtils.getResponseDto("flight package records", HttpStatus.OK, flightPackageProjectionList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ServerException(e.getMessage());
+        }
     }
 
     /**

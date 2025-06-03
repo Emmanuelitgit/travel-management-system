@@ -15,5 +15,5 @@ public interface FlightPackageProjection {
     String getSeatType(); // Aisle or Window
     String getTripType(); // one-way or round-trip
     String getClassType();
-    String  getAirlineId();
+    String  getAirline();
 }

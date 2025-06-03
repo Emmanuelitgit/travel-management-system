@@ -1,21 +1,20 @@
 package flight_service.models;
 
+import flight_service.config.AuditorData;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "flight_class_type_tb")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FlightClassType {
+public class FlightClassType extends AuditorData {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

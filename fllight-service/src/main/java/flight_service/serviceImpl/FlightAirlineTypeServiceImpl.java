@@ -7,6 +7,7 @@ import flight_service.models.FlightAirlineType;
 import flight_service.repo.FlightAirlineTypeRepo;
 import flight_service.service.FlightAirlineTypeService;
 import flight_service.util.AppUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
 
@@ -33,6 +35,7 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
      */
     @Override
     public ResponseEntity<ResponseDTO> findAll() {
+        log.info("in get all airlines method:->>>>");
         try {
             List<FlightAirlineType> flightAirlineTypes = flightAirlineTypeRepo.findAll();
             if (flightAirlineTypes.isEmpty()){
@@ -57,6 +60,7 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
     @Override
     public ResponseEntity<ResponseDTO> saveAirline(FlightAirlineType flightAirlineType) {
         try {
+            log.info("in save airline record method:->>>>");
             if (flightAirlineType == null){
                 ResponseDTO response = AppUtils.getResponseDto("airline payload cannot be null", HttpStatus.BAD_REQUEST);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -80,6 +84,7 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
     @Override
     public ResponseEntity<ResponseDTO> updateAirline(UUID airlineId, FlightAirlineType flightAirlineType) {
         try {
+            log.info("in update airline record method:->>>>");
             FlightAirlineType existingData = flightAirlineTypeRepo.findById(airlineId)
                     .orElseThrow(()-> new NotFoundException("airline record not found"));
 
@@ -106,6 +111,7 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
     @Override
     public ResponseEntity<ResponseDTO> removeAirline(UUID airlineId) {
         try {
+            log.info("in remove airline record method:->>>>");
             FlightAirlineType flightAirlineType = flightAirlineTypeRepo.findById(airlineId)
                     .orElseThrow(()-> new NotFoundException("airline record not found"));
             flightAirlineTypeRepo.deleteById(flightAirlineType.getId());
@@ -127,6 +133,7 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
     @Override
     public ResponseEntity<ResponseDTO> getAirlineById(UUID airlineId) {
        try {
+           log.info("in get airline record by id method:->>>>");
            FlightAirlineType flightAirlineType = flightAirlineTypeRepo.findById(airlineId)
                    .orElseThrow(()-> new NotFoundException("airline record not found"));
 

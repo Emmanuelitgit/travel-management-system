@@ -8,6 +8,7 @@ import flight_service.models.FlightClassType;
 import flight_service.repo.FlightClassTypeRepo;
 import flight_service.service.FlightClassTypeService;
 import flight_service.util.AppUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class FlightClassTypeServiceImpl implements FlightClassTypeService {
     private final FlightClassTypeRepo flightClassTypeRepo;
@@ -33,6 +35,7 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
      */
     @Override
     public ResponseEntity<ResponseDTO> findAll() {
+        log.info("in get all flight classes method:->>>>");
         try {
             List<FlightClassType> flightClassTypes = flightClassTypeRepo.findAll();
             if (flightClassTypes.isEmpty()){
@@ -57,6 +60,7 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
     @Override
     public ResponseEntity<ResponseDTO> saveFlightClass(FlightClassType flightClassType) {
         try {
+            log.info("in save flight class record method:->>>>");
             if (flightClassType == null){
                 ResponseDTO response = AppUtils.getResponseDto("flight class payload cannot be null", HttpStatus.BAD_REQUEST);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -80,6 +84,7 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
     @Override
     public ResponseEntity<ResponseDTO> updateFlightClass(UUID classId, FlightClassType flightClassType) {
         try {
+            log.info("in update flight class record method:->>>>");
             FlightClassType existingData = flightClassTypeRepo.findById(classId)
                     .orElseThrow(()-> new NotFoundException("flight class record not found"));
 
@@ -106,6 +111,7 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
     @Override
     public ResponseEntity<ResponseDTO> removeFlightClass(UUID classId) {
         try {
+            log.info("in remove flight class record method:->>>>");
             FlightClassType flightClassType = flightClassTypeRepo.findById(classId)
                     .orElseThrow(()-> new NotFoundException("flight class record not found"));
             flightClassTypeRepo.deleteById(flightClassType.getId());
@@ -127,6 +133,7 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
     @Override
     public ResponseEntity<ResponseDTO> getFlightClassById(UUID classId) {
         try {
+            log.info("in get flight class record by id method:->>>>");
             FlightClassType flightClassType = flightClassTypeRepo.findById(classId)
                     .orElseThrow(()-> new NotFoundException("flight class record not found"));
 

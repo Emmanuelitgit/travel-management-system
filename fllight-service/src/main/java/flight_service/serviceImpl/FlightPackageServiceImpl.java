@@ -1,6 +1,7 @@
 package flight_service.serviceImpl;
 
 import flight_service.dto.ResponseDTO;
+import flight_service.dto.enums.TripType;
 import flight_service.dto.projections.FlightPackageProjection;
 import flight_service.exception.BadRequestException;
 import flight_service.exception.NotFoundException;
@@ -12,6 +13,7 @@ import flight_service.service.FlightPackageService;
 import flight_service.util.AppUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -57,6 +59,8 @@ public class FlightPackageServiceImpl implements FlightPackageService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight package records", HttpStatus.OK, flightPackageProjectionList);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -78,33 +82,15 @@ public class FlightPackageServiceImpl implements FlightPackageService {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            // check if seat type exist
-            flightSeatTypeRepo.findById(flightPackage.getSeatType())
-                    .orElseThrow(()-> new NotFoundException("flight seat type record not found"));
-            // check if departure exist
-            airportRepo.findById(flightPackage.getDeparture())
-                            .orElseThrow(()-> new NotFoundException("departure record not found"));
-            // check if destination exist
-            airportRepo.findById(flightPackage.getDestination())
-                    .orElseThrow(()-> new NotFoundException("destination record not found"));
-            // check if airline exist
-            flightAirlineTypeRepo.findById(flightPackage.getAirlineId())
-                            .orElseThrow(()-> new NotFoundException("airline type record not found"));
-            // check if class type exist
-            flightClassTypeRepo.findById(flightPackage.getClassType())
-                    .orElseThrow(()-> new NotFoundException("flight class type record not found"));
+            // checking flight details existence
+            checkFlightDetailsExistence(flightPackage);
 
-            // validate departure date and arrival date
-            if (flightPackage.getDepartureDate().isEqual(flightPackage.getArrivalDate())){
-                throw new BadRequestException("departure date cannot be same as arrival date");
-            }
-            if (flightPackage.getDepartureDate().isAfter(flightPackage.getArrivalDate())){
-                throw new BadRequestException("departure date cannot be ahead of arrival date");
-            }
-
+            flightPackage.setTripType(flightPackage.getTripType().toUpperCase());
             FlightPackage res = flightPackageRepo.save(flightPackage);
             ResponseDTO response = AppUtils.getResponseDto("flight package created successfully", HttpStatus.CREATED, res);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -137,13 +123,57 @@ public class FlightPackageServiceImpl implements FlightPackageService {
             existingData.setNonStop(flightPackage.isNonStop());
             existingData.setSeatType(flightPackage.getSeatType() !=null? flightPackage.getSeatType() : existingData.getSeatType());
 
+            // checking flight details existence
+            checkFlightDetailsExistence(existingData);
+
             // saving updated flight package details
             FlightPackage res = flightPackageRepo.save(existingData);
 
             ResponseDTO response = AppUtils.getResponseDto("flight package updated successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
+        }
+    }
+
+    /**
+     * @description A helper method used to check flight details existence such as airline, airport, seatType, classType given their IDs.
+     * @param flightPackage the parameter containing the various payloads.
+     * @return void but throws not found exception if one of the details not found.
+     * @author Emmanuel Yidana
+     * @createdAt 4th, June 2025
+     */
+    private void checkFlightDetailsExistence(FlightPackage flightPackage){
+        // check if seat type exist
+        flightSeatTypeRepo.findById(flightPackage.getSeatType())
+                .orElseThrow(()-> new NotFoundException("flight seat type record not found"));
+        // check if departure exist
+        airportRepo.findById(flightPackage.getDeparture())
+                .orElseThrow(()-> new NotFoundException("departure record not found"));
+        // check if destination exist
+        airportRepo.findById(flightPackage.getDestination())
+                .orElseThrow(()-> new NotFoundException("destination record not found"));
+        // check if airline exist
+        flightAirlineTypeRepo.findById(flightPackage.getAirlineId())
+                .orElseThrow(()-> new NotFoundException("airline type record not found"));
+        // check if class type exist
+        flightClassTypeRepo.findById(flightPackage.getClassType())
+                .orElseThrow(()-> new NotFoundException("flight class type record not found"));
+
+        // validate departure date and arrival date
+        if (flightPackage.getDepartureDate().isEqual(flightPackage.getArrivalDate())){
+            throw new BadRequestException("departure date cannot be same as arrival date");
+        }
+        if (flightPackage.getDepartureDate().isAfter(flightPackage.getArrivalDate())){
+            throw new BadRequestException("departure date cannot be ahead of arrival date");
+        }
+        if (!flightPackage.getTripType().equalsIgnoreCase(TripType.ROUND_TRIP.toString()) && !flightPackage.getTripType().equalsIgnoreCase(TripType.ONE_WAY.toString())){
+            throw new BadRequestException("Invalid trip type: must be ONE_WAY or ROUND_TRIP.");
+        }
+        if (flightPackage.getDeparture().equals(flightPackage.getDestination())){
+            throw new BadRequestException("departure airport and destination airport cannot be same");
         }
     }
 
@@ -165,6 +195,8 @@ public class FlightPackageServiceImpl implements FlightPackageService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight package removed successfully", HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -186,6 +218,8 @@ public class FlightPackageServiceImpl implements FlightPackageService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight package records fetched successfully", HttpStatus.OK, flightPackage);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }

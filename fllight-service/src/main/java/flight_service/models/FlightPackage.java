@@ -35,7 +35,7 @@ public class FlightPackage extends AuditorData {
     @NotNull(message = "seat type cannot be null")
     private UUID seatType; // Aisle or Window
     @NotNull(message = "trip type cannot be null")
-    private TripType tripType; // one-way or round-trip
+    private String tripType; // one-way or round-trip
     @NotNull(message = "class type cannot be null")
     private UUID classType;
     @NotNull(message = "airline type cannot be null")

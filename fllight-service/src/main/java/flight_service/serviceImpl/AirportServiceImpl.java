@@ -45,6 +45,8 @@ public class AirportServiceImpl implements AirportService {
             }
             ResponseDTO response = AppUtils.getResponseDto("airports records", HttpStatus.OK, airports);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -68,6 +70,8 @@ public class AirportServiceImpl implements AirportService {
             Airport res = airportRepo.save(airport);
             ResponseDTO response = AppUtils.getResponseDto("airport added successfully", HttpStatus.CREATED, res);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -97,6 +101,8 @@ public class AirportServiceImpl implements AirportService {
 
             ResponseDTO response = AppUtils.getResponseDto("airport updated successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -119,6 +125,8 @@ public class AirportServiceImpl implements AirportService {
 
             ResponseDTO response = AppUtils.getResponseDto("airport removed successfully", HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -140,6 +148,8 @@ public class AirportServiceImpl implements AirportService {
 
             ResponseDTO response = AppUtils.getResponseDto("airport records fetched successfully", HttpStatus.OK, airport);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }

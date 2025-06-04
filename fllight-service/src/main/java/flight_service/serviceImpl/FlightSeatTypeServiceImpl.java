@@ -46,6 +46,8 @@ public class FlightSeatTypeServiceImpl implements FlightSeatTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight class records", HttpStatus.OK, flightSeatTypes);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -69,6 +71,8 @@ public class FlightSeatTypeServiceImpl implements FlightSeatTypeService {
             FlightSeatType res = flightSeatTypeRepo.save(flightSeatType);
             ResponseDTO response = AppUtils.getResponseDto("flight seat type added successfully", HttpStatus.CREATED, res);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -97,6 +101,8 @@ public class FlightSeatTypeServiceImpl implements FlightSeatTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight seat type updated successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -119,6 +125,8 @@ public class FlightSeatTypeServiceImpl implements FlightSeatTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight seat type removed successfully", HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -140,6 +148,8 @@ public class FlightSeatTypeServiceImpl implements FlightSeatTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight seat type records fetched successfully", HttpStatus.OK, flightClassType);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }

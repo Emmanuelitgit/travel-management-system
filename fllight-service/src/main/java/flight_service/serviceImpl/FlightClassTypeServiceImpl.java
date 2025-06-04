@@ -45,6 +45,8 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight class records", HttpStatus.OK, flightClassTypes);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -68,6 +70,8 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
             FlightClassType res = flightClassTypeRepo.save(flightClassType);
             ResponseDTO response = AppUtils.getResponseDto("flight class added successfully", HttpStatus.CREATED, res);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -96,6 +100,8 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight class added successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -118,6 +124,8 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight class removed successfully", HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -139,6 +147,8 @@ public class FlightClassTypeServiceImpl implements FlightClassTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("flight class records fetched successfully", HttpStatus.OK, flightClassType);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }

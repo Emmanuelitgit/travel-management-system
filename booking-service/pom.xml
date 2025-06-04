@@ -8,11 +8,11 @@
 		<version>3.4.1</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.flight-service</groupId>
-	<artifactId>flight-service</artifactId>
+	<groupId>com.booking-service</groupId>
+	<artifactId>booking-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>flight-service</name>
-	<description>flight-service application</description>
+	<name>booking-service</name>
+	<description>booking-service application</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -189,6 +189,10 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 			<version>4.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

@@ -45,6 +45,8 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("airlines records", HttpStatus.OK, flightAirlineTypes);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -68,6 +70,8 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
             FlightAirlineType res = flightAirlineTypeRepo.save(flightAirlineType);
             ResponseDTO response = AppUtils.getResponseDto("airline added successfully", HttpStatus.CREATED, res);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -96,6 +100,8 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("airline added successfully", HttpStatus.CREATED, res);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -118,6 +124,8 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
 
             ResponseDTO response = AppUtils.getResponseDto("airline removed successfully", HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
@@ -139,6 +147,8 @@ public class FlightAirlineTypeServiceImpl implements FlightAirlineTypeService {
 
            ResponseDTO response = AppUtils.getResponseDto("airline records fetched successfully", HttpStatus.OK, flightAirlineType);
            return new ResponseEntity<>(response, HttpStatus.OK);
+       } catch (NotFoundException e) {
+           throw new NotFoundException(e.getMessage());
        } catch (Exception e) {
            throw new ServerException(e.getMessage());
        }

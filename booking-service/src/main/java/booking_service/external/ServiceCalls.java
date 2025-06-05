@@ -32,20 +32,20 @@ public class ServiceCalls {
                 .map(ApiResponse::getData);
     }
 
-    public Mono<FlightPackageResponse> updateFlightPackage() {
+    public Mono<FlightPackageResponse> updateFlightPackage(UUID id) {
         FlightPackageResponse flightPackage = new FlightPackageResponse();
         flightPackage.setAvailableSeats(120);
         return webClient.put()
-                .uri("/flight-package/"+"3b027f81-d5ea-483b-b4f3-140d17727bb5")
+                .uri("/flight-package/"+id)
                 .bodyValue(flightPackage)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<ApiResponse<FlightPackageResponse>>() {})
                 .map(ApiResponse::getData);
     }
 
-    @Scheduled(fixedRate = 1000)
-    public void test(){
-        updateFlightPackage()
-                .subscribe((response)-> log.info("Response{}", response.getDestination()));
-    }
+//    @Scheduled(fixedRate = 1000)
+//    public void test(){
+//        updateFlightPackage()
+//                .subscribe((response)-> log.info("Response{}", response.getDestination()));
+//    }
 }

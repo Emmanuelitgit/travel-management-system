@@ -42,7 +42,7 @@ public class Config {
     WebClient webClient(){
         return WebClient
                 .builder()
-                .baseUrl("http://localhost:5000/flight-service/api/v1")
+                .baseUrl("http://localhost:9091/flight-service/api/v1")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

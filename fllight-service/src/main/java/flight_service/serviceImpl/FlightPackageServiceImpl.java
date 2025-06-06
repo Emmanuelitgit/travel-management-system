@@ -213,8 +213,10 @@ public class FlightPackageServiceImpl implements FlightPackageService {
     public ResponseEntity<ResponseDTO> getFlightPackageById(UUID packageId) {
         try {
             log.info("in get flight package record by id method:->>>>");
-            FlightPackage flightPackage = flightPackageRepo.findById(packageId)
+            flightPackageRepo.findById(packageId)
                     .orElseThrow(()-> new NotFoundException("flight package record not found"));
+
+            FlightPackageProjection flightPackage = flightPackageRepo.findFlightPackageById(packageId);
 
             ResponseDTO response = AppUtils.getResponseDto("flight package records fetched successfully", HttpStatus.OK, flightPackage);
             return new ResponseEntity<>(response, HttpStatus.OK);

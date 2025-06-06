@@ -18,4 +18,5 @@ public interface FlightPackageProjection {
     String getTripType(); // one-way or round-trip
     String getClassType();
     String  getAirline();
+    String getDescription();
 }

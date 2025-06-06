@@ -1,11 +1,15 @@
 package booking_service.serviceImpl;
 
 import booking_service.dto.BookingProjection;
+import booking_service.dto.BookingResponse;
 import booking_service.dto.ResponseDTO;
+import booking_service.dto.enums.BookingStatus;
+import booking_service.dto.enums.PaymentStatus;
 import booking_service.exception.BadRequestException;
 import booking_service.exception.NotFoundException;
 import booking_service.exception.ServerException;
 import booking_service.external.ServiceCalls;
+import booking_service.external.dto.FlightPackageResponse;
 import booking_service.models.Booking;
 import booking_service.repo.BookingRepo;
 import booking_service.service.BookingService;
@@ -16,7 +20,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -42,11 +48,30 @@ public class BookingServiceImpl implements BookingService {
     public ResponseEntity<ResponseDTO> findAll() {
        try {
            log.info("in fetch all bookings records method:->>>>");
-           List<BookingProjection> bookings = bookingRepo.fetchAllBookings();
+           List<Booking> bookings = bookingRepo.findAll();
            if (bookings.isEmpty()){
                throw new NotFoundException("no booking record found");
            }
-           ResponseDTO response = AppUtils.getResponseDto("airports records", HttpStatus.OK, bookings);
+
+           List<BookingResponse> responses = new ArrayList<>();
+           bookings.forEach((booking)->{
+
+               FlightPackageResponse flightPackageResponse = serviceCalls.getFlightPackage(booking.getPackageId()).block();
+
+               BookingResponse bookingResponse = BookingResponse
+                       .builder()
+                       .bookingStatus(booking.getBookingStatus())
+                       .paymentStatus(booking.getPaymentStatus())
+                       .totalPrice(booking.getTotalPrice())
+                       .seatNumber(booking.getSeatNumber())
+                       .bookingId(booking.getId())
+                       .flight(flightPackageResponse)
+                       .build();
+
+               responses.add(bookingResponse);
+           });
+
+           ResponseDTO response = AppUtils.getResponseDto("airports records", HttpStatus.OK, responses);
            return new ResponseEntity<>(response, HttpStatus.OK);
        }catch (NotFoundException e) {
            throw new NotFoundException(e.getMessage());
@@ -64,30 +89,63 @@ public class BookingServiceImpl implements BookingService {
      */
     @Override
     public ResponseEntity<ResponseDTO> saveBooking(Booking booking) {
-
         try {
-            log.info("in save booking record method:->>>>");
-            if (booking == null){
-                ResponseDTO response = AppUtils.getResponseDto("airport payload cannot be null", HttpStatus.BAD_REQUEST);
+            log.info("in save booking record method");
+
+            // Validate payload
+            if (booking == null) {
+                ResponseDTO response = AppUtils.getResponseDto("booking payload cannot be null", HttpStatus.BAD_REQUEST);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            serviceCalls.getFlightPackage(booking.getPackageId())
-                    .subscribe((response)->{
-                        if(response.getAvailableSeats() < 1){
-                            throw new BadRequestException("flight is occupied already");
-                        }
-                    });
+            // Check if seat already booked for
+            Optional<Booking> seatExist = bookingRepo.findBySeatNumber(booking.getSeatNumber());
+            if (seatExist.isPresent()) {
+                throw new BadRequestException("Seat is already booked");
+            }
 
-            Booking res = bookingRepo.save(booking);
-            ResponseDTO response = AppUtils.getResponseDto("booking record added successfully", HttpStatus.CREATED, res);
+            // Check flight package availability via WebClient (block for response)
+            FlightPackageResponse flightResponse = serviceCalls
+                    .getFlightPackage(booking.getPackageId())
+                    .block(); // block to wait for response
+
+            if (flightResponse == null){
+               throw new BadRequestException("flight package cannot be null");
+            }
+
+            if (flightResponse.getAvailableSeats() < 1) {
+                throw new BadRequestException("Flight is already occupied");
+            }
+
+            if (flightResponse.getAvailableSeats() < booking.getNumberOfSeats()) {
+                throw new BadRequestException("Requested seats exceeds the available seats");
+            }
+
+            // Update the flight package to reduce available seats
+            serviceCalls.updateFlightPackage(booking.getPackageId(), flightResponse.getAvailableSeats()-1).block();
+
+            // Save the booking in DB
+            Float totalPrice = booking.getNumberOfSeats()*flightResponse.getPrice();
+            booking.setTotalPrice(totalPrice);
+            booking.setBookingStatus(BookingStatus.PENDING.toString());
+            booking.setPaymentStatus(PaymentStatus.PENDING.toString());
+            Booking savedBooking = bookingRepo.save(booking);
+
+            // Prepare and return success response
+            ResponseDTO response = AppUtils.getResponseDto("Booking added successfully", HttpStatus.CREATED, savedBooking);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+
         } catch (NotFoundException e) {
             throw new NotFoundException(e.getMessage());
-        } catch (Exception e) {
+        } catch (BadRequestException e) {
+            throw new BadRequestException(e.getMessage());
+        } catch (ServerException e) {
             throw new ServerException(e.getMessage());
+        } catch (Exception e) {
+            throw new ServerException("Internal error occurred: " + e.getMessage());
         }
     }
+
 
     /**
      * @description Updates an existing booking record identified by ID.
@@ -105,12 +163,13 @@ public class BookingServiceImpl implements BookingService {
             Booking existingData = bookingRepo.findById(bookingId)
                     .orElseThrow(()-> new NotFoundException("booking record not found"));
 
-            existingData.setBookingStatus(booking.getBookingStatus() !=null? booking.getBookingStatus() : existingData.getBookingStatus());
+            existingData.setBookingStatus(booking.getBookingStatus() !=null? booking.getBookingStatus().toUpperCase() : existingData.getBookingStatus());
             existingData.setPackageId(booking.getPackageId() !=null? booking.getPackageId() : existingData.getPackageId());
             existingData.setTotalPrice(booking.getTotalPrice() !=null? booking.getTotalPrice() : existingData.getTotalPrice());
             existingData.setSeatNumber(booking.getSeatNumber() !=null? booking.getSeatNumber() : existingData.getSeatNumber());
             existingData.setUserId(booking.getUserId() !=null? booking.getUserId() : existingData.getUserId());
-            existingData.setPaymentStatus(booking.getPaymentStatus() !=null? booking.getPaymentStatus() : existingData.getPaymentStatus());
+            existingData.setPaymentStatus(booking.getPaymentStatus() !=null? booking.getPaymentStatus().toUpperCase() : existingData.getPaymentStatus());
+            existingData.setNumberOfSeats(booking.getNumberOfSeats() !=null? booking.getNumberOfSeats() : existingData.getNumberOfSeats());
 
             Booking res = bookingRepo.save(existingData);
 
@@ -124,7 +183,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     /**
-     * @description Deletes an booking record based on the given ID.
+     * @description Deletes a booking record based on the given ID.
      * @param bookingId the ID of the booking to delete.
      * @return ResponseEntity indicating whether the deletion was successful.
      * @author Emmanuel Yidana
@@ -166,12 +225,31 @@ public class BookingServiceImpl implements BookingService {
             Booking booking = bookingRepo.findById(bookingId)
                     .orElseThrow(()-> new NotFoundException("booking record not found"));
 
-            ResponseDTO response = AppUtils.getResponseDto("airport records fetched successfully", HttpStatus.OK, booking);
+
+            FlightPackageResponse flightPackageResponse = serviceCalls.getFlightPackage(booking.getPackageId()).block();
+
+            BookingResponse bookingResponse = BookingResponse
+                    .builder()
+                    .bookingStatus(booking.getBookingStatus())
+                    .paymentStatus(booking.getPaymentStatus())
+                    .totalPrice(booking.getTotalPrice())
+                    .seatNumber(booking.getSeatNumber())
+                    .bookingId(booking.getId())
+                    .flight(flightPackageResponse)
+                    .build();
+
+
+            ResponseDTO response = AppUtils.getResponseDto("airport records fetched successfully", HttpStatus.OK, bookingResponse);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotFoundException e) {
             throw new NotFoundException(e.getMessage());
         } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
+    }
+
+    @Override
+    public ResponseEntity<ResponseDTO> getBookingBySeatNumber(UUID seatNumber) {
+        return null;
     }
 }

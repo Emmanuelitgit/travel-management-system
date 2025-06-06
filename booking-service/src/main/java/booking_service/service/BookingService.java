@@ -13,4 +13,5 @@ public interface BookingService {
     ResponseEntity<ResponseDTO> removeBooking(UUID bookingId);
     ResponseEntity<ResponseDTO> cancelBooking(UUID bookingId);
     ResponseEntity<ResponseDTO> getBookingById(UUID bookingId);
+    ResponseEntity<ResponseDTO> getBookingBySeatNumber(UUID seatNumber);
 }

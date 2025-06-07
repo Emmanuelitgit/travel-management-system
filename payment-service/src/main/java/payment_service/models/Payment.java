@@ -21,5 +21,10 @@ public class Payment extends AuditorData {
     private UUID bookingId;
     private Float amount;
     private String transactionId;
+    private String paymentStatus;
+    private String access_code;
+    private String reference;
+    private String currency;
+    private String channel;
     private ZonedDateTime paymentDate;
 }

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import payment_service.dto.ResponseDTO;
+import payment_service.exception.BadRequestException;
 import payment_service.exception.NotFoundException;
 import payment_service.exception.ServerException;
 import payment_service.external.ServiceCalls;
@@ -93,7 +94,16 @@ public class PaymentServiceImpl implements PaymentService {
             Payment existingData = paymentRepo.findById(paymentId)
                     .orElseThrow(()-> new NotFoundException("no payment record found"));
 
-            existingData.setPaymentStatus(payment.getPaymentStatus() !=null? payment.getPaymentStatus() : existingData.getPaymentStatus());
+            if(
+                    payment.getPaymentStatus().equalsIgnoreCase(PaymentStatus.PAID.toString()) ||
+                    payment.getPaymentStatus().equalsIgnoreCase(PaymentStatus.PROCESSING.toString()) ||
+                    payment.getPaymentStatus().equalsIgnoreCase(PaymentStatus.PENDING.toString()) ||
+                    payment.getPaymentStatus().equalsIgnoreCase(PaymentStatus.CANCELLED.toString())
+            ){
+                existingData.setPaymentStatus(payment.getPaymentStatus() !=null? payment.getPaymentStatus().toUpperCase() : existingData.getPaymentStatus());
+            }else {
+                throw new BadRequestException("unknown payment status");
+            }
 
             Payment paymentResponse = paymentRepo.save(existingData);
 
@@ -166,7 +176,6 @@ public class PaymentServiceImpl implements PaymentService {
             Optional<Payment> payment = paymentRepo.findByReference(data.getReference());
             if (payment.isPresent() && data.getStatus().equalsIgnoreCase("success")){
                 Payment existingData = payment.get();
-                existingData.setPaymentStatus(PaymentStatus.PAID.toString());
 
                 // prepare data to update booking status
                 BookingUpdatePayload bookingUpdatePayload = BookingUpdatePayload
@@ -178,6 +187,11 @@ public class PaymentServiceImpl implements PaymentService {
                 serviceCalls.updateBooking(existingData.getBookingId(), bookingUpdatePayload).block();
 
                 // save updated payment records
+                existingData.setPaymentStatus(PaymentStatus.PAID.toString());
+                existingData.setTransactionId(data.getId());
+                existingData.setCurrency(data.getCurrency());
+                existingData.setChannel(data.getChannel());
+                existingData.setPaymentDate(data.getPaid_at());
                 paymentRepo.save(existingData);
 
                 return new ResponseEntity<>(HttpStatus.OK);

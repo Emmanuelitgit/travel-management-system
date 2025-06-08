@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #1e90ff;
+            margin-bottom: 20px;
+        }
+
+        .greeting {
+            margin-bottom: 15px;
+        }
+
+        .info {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+        }
+
+        .info p {
+            margin: 6px 0;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Flight Booking Confirmation</h2>
+
+    <p class="greeting">Dear <span th:text="${fullName}">John Doe</span>,</p>
+
+    <p>Your flight booking is confirmed. Please find the details below:</p>
+
+    <div class="info">
+        <p><strong>From:</strong> <span th:text="${booking.departure}">Lagos</span></p>
+        <p><strong>To:</strong> <span th:text="${booking.destination}">Abuja</span></p>
+        <p><strong>Departure Time:</strong> <span th:text="${booking.departureDate}">Abuja</span></p>
+        <p><strong>Arrival Date:</strong> <span th:text="${booking.arrivalDate}">Abuja</span></p>
+        <p><strong>Airline:</strong> <span th:text="${booking.airline}">Air Peace</span></p>
+        <p><strong>Class:</strong> <span th:text="${booking.classType}">Economy</span></p>
+        <p><strong>Trip Type:</strong> <span th:text="${booking.tripType}">One Way</span></p>
+        <p><strong>Seat Number:</strong> <span th:text="${booking.seatNumber}">14A</span></p>
+        <p><strong>Number of Seats:</strong> <span th:text="${booking.numberOfSeats}">2</span></p>
+        <p><strong>Price per Seat:</strong> ₦<span th:text="${booking.price}">15000</span></p>
+        <p><strong>Total Price:</strong> ₦<span th:text="${booking.totalPrice}">30000.0</span></p>
+    </div>
+
+    <p class="footer">If you have any questions, feel free to contact our support team.<br/>
+        Thank you for choosing our service!</p>
+</div>
+</body>
+</html>

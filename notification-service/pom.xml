@@ -8,11 +8,11 @@
 		<version>3.4.1</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.payment-service</groupId>
-	<artifactId>payment-service</artifactId>
+	<groupId>com.notification-service</groupId>
+	<artifactId>notification-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>payment-service</name>
-	<description>payment-service application</description>
+	<name>notification-service</name>
+	<description>notification-service application</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -194,10 +194,15 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

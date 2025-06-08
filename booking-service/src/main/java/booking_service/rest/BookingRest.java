@@ -34,7 +34,8 @@ public class BookingRest {
 
     @PutMapping("/{bookingId}")
     public ResponseEntity<ResponseDTO> updateAirport(@PathVariable UUID bookingId, @RequestBody Booking booking){
-        return bookingService.updateBooking(bookingId,booking);
+        booking.setId(bookingId);
+        return bookingService.updateBooking(booking);
     }
 
     @GetMapping("/{bookingId}")

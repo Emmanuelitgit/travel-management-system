@@ -1,6 +1,5 @@
 package booking_service.repo;
 
-import booking_service.dto.BookingProjection;
 import booking_service.models.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

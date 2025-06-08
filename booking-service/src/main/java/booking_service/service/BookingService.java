@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface BookingService {
     ResponseEntity<ResponseDTO> findAll();
     ResponseEntity<ResponseDTO> saveBooking(Booking booking);
-    ResponseEntity<ResponseDTO> updateBooking(UUID bookingId, Booking booking);
+    ResponseEntity<ResponseDTO> updateBooking(Booking booking);
     ResponseEntity<ResponseDTO> removeBooking(UUID bookingId);
     ResponseEntity<ResponseDTO> cancelBooking(UUID bookingId);
     ResponseEntity<ResponseDTO> getBookingById(UUID bookingId);

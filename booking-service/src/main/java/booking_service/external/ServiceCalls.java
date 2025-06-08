@@ -84,7 +84,7 @@ public class ServiceCalls {
      * @author Emmanuel Yidana
      * @createdAt 6th, June 2025
      * */
-    public Mono<UserResponse> getFlightUserInfo(UUID id) {
+    public Mono<UserResponse> getUserInfo(UUID id) {
         return webClient.get()
                 .uri("/user-service/" + id)
                 .retrieve()

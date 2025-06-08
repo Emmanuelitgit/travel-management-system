@@ -27,7 +27,7 @@ public class BookingServiceImpl {
     }
 
     @KafkaListener(topics = "bookingNotification", containerFactory = "bookingKafkaListenerContainerFactory", groupId = "booking-group")
-    public void SendToCustomer(BookingPayload payload){
+    public void SendToCustomer(BookingPayload booking){
         try {
             log.info("In booking notification method:->>>>>>");
 
@@ -36,12 +36,11 @@ public class BookingServiceImpl {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setSubject("Trip Summary");
             helper.setFrom("eyidana001@gmail.com");
-            helper.setTo(payload.getEmail());
+            helper.setTo(booking.getEmail());
 
             // setting variables values to passed to the template
             Context context = new Context();
-            context.setVariable("fullName", payload.getFirstName() + " " + payload.getLastName());
-            context.setVariable("booking", payload.getBooking());
+            context.setVariable("booking", booking);
 
             String htmlContent = templateEngine.process("BookingTemplate", context);
             helper.setText(htmlContent, true);

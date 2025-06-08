@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import payment_service.dto.ResponseDTO;
@@ -27,11 +29,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final ServiceCalls serviceCalls;
     private final PaymentRepo paymentRepo;
+    private final KafkaTemplate<String, BookingUpdatePayload> bookingUpdate;
+    private final KafkaTemplate<String, String> paymentNotification;
 
     @Autowired
-    public PaymentServiceImpl(ServiceCalls serviceCalls, PaymentRepo paymentRepo) {
+    public PaymentServiceImpl(ServiceCalls serviceCalls, PaymentRepo paymentRepo, KafkaTemplate<String, BookingUpdatePayload> bookingUpdate, KafkaTemplate<String, String> paymentNotification) {
         this.serviceCalls = serviceCalls;
         this.paymentRepo = paymentRepo;
+        this.bookingUpdate = bookingUpdate;
+        this.paymentNotification = paymentNotification;
     }
 
     /**
@@ -64,19 +70,27 @@ public class PaymentServiceImpl implements PaymentService {
      * @author Emmanuel Yidana
      * @createdAt 7th, June 2025
      */
+    @KafkaListener(topics = "paymentUpdate", containerFactory = "bookingPaymentKafkaListenerContainerFactory", groupId = "booking-group")
     @Override
     public ResponseEntity<ResponseDTO> makePayment(PaymentPayload payment) {
 
         BookingUpdatePayload bookingUpdatePayload = BookingUpdatePayload
                 .builder()
+                .id(payment.getBookingId())
                 .paymentStatus(PaymentStatus.PROCESSING.toString())
-                .bookingStatus(BookingStatus.PROCESSING.toString())
+                .bookingStatus(BookingStatus.AWAITING_PAYMENT.toString())
                 .build();
 
-        BookingResponse bookingResponse = serviceCalls.updateBooking(payment.getBookingId(), bookingUpdatePayload).block();
+//        BookingResponse bookingResponse = serviceCalls.updateBooking(payment.getBookingId(), bookingUpdatePayload).block();
+        // make a call to payStack to initiate payment process
         PaymentResponse paymentResponse = serviceCalls.makePayment(payment).block();
+        assert paymentResponse != null;
 
-        ResponseDTO responseDTO = AppUtils.getResponseDto("payment success", HttpStatus.OK, paymentResponse);
+        // publish an update to notification service to send payment authorization to user
+        paymentNotification.send("paymentNotification", paymentResponse.getData().getAuthorization_url());
+        bookingUpdate.send("bookingUpdate", bookingUpdatePayload);
+
+        ResponseDTO responseDTO = AppUtils.getResponseDto("payment success", HttpStatus.OK);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 
@@ -180,11 +194,15 @@ public class PaymentServiceImpl implements PaymentService {
                 // prepare data to update booking status
                 BookingUpdatePayload bookingUpdatePayload = BookingUpdatePayload
                         .builder()
+                        .id(payment.get().getBookingId())
                         .bookingStatus(BookingStatus.CONFIRMED.toString())
                         .paymentStatus(PaymentStatus.PAID.toString())
                         .build();
                 // make call to booking service to update booking status
-                serviceCalls.updateBooking(existingData.getBookingId(), bookingUpdatePayload).block();
+//                serviceCalls.updateBooking(existingData.getBookingId(), bookingUpdatePayload).block();
+
+                // publish an update to booking service
+                bookingUpdate.send("bookingUpdate", bookingUpdatePayload);
 
                 // save updated payment records
                 existingData.setPaymentStatus(PaymentStatus.PAID.toString());

@@ -1,4 +1,4 @@
-package payment_service.external.dto;
+package booking_service.config.kafka.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

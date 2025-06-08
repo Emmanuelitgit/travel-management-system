@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -105,6 +106,7 @@ public class FlightPackageServiceImpl implements FlightPackageService {
      * @createdAt 3rd, June 2025
      @Override
      */
+    @KafkaListener(topics = "flightPackageUpdate", containerFactory = "flightPackageKafkaListenerContainerFactory", groupId = "flight-group")
     public ResponseEntity<ResponseDTO> updateFlightPackage(UUID packageId, FlightPackage flightPackage) {
         try {
             log.info("in update flight package record method:->>>>");

@@ -4,5 +4,6 @@ public enum BookingStatus {
     CONFIRMED,
     CANCELLED,
     PENDING,
+    AWAITING_PAYMENT,
     PROCESSING
 }

@@ -18,8 +18,8 @@ public class FlightPackageResponse {
     private String departure;
     private Integer availableSeats;
     private Float price;
-    private LocalDateTime departureDate;
-    private LocalDateTime arrivalDate;
+    private String departureDate;
+    private String arrivalDate;
     private boolean nonStop;
     private String seatType;
     private String tripType;

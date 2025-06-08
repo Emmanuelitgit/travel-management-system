@@ -1,6 +1,8 @@
 package booking_service.serviceImpl;
 
-import booking_service.dto.BookingProjection;
+import booking_service.config.kafka.dto.BookingNotificationPayload;
+import booking_service.config.kafka.dto.FlightUpdatePayload;
+import booking_service.config.kafka.dto.PaymentUpdatePayload;
 import booking_service.dto.BookingResponse;
 import booking_service.dto.ResponseDTO;
 import booking_service.dto.enums.BookingStatus;
@@ -10,6 +12,7 @@ import booking_service.exception.NotFoundException;
 import booking_service.exception.ServerException;
 import booking_service.external.ServiceCalls;
 import booking_service.external.dto.FlightPackageResponse;
+import booking_service.external.dto.UserResponse;
 import booking_service.models.Booking;
 import booking_service.repo.BookingRepo;
 import booking_service.service.BookingService;
@@ -18,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,11 +36,17 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepo bookingRepo;
     private final ServiceCalls serviceCalls;
+    private final KafkaTemplate<String, BookingNotificationPayload> bookingNotification;
+    private final KafkaTemplate<String, PaymentUpdatePayload> paymentUpdate;
+    private final KafkaTemplate<String, FlightUpdatePayload> flightPackageUpdate;
 
     @Autowired
-    public BookingServiceImpl(BookingRepo bookingRepo, ServiceCalls serviceCalls) {
+    public BookingServiceImpl(BookingRepo bookingRepo, ServiceCalls serviceCalls, KafkaTemplate<String, BookingNotificationPayload> bookingNotification, KafkaTemplate<String, PaymentUpdatePayload> paymentUpdate, KafkaTemplate<String, FlightUpdatePayload> flightPackageUpdate) {
         this.bookingRepo = bookingRepo;
         this.serviceCalls = serviceCalls;
+        this.bookingNotification = bookingNotification;
+        this.paymentUpdate = paymentUpdate;
+        this.flightPackageUpdate = flightPackageUpdate;
     }
 
     /**
@@ -121,8 +132,13 @@ public class BookingServiceImpl implements BookingService {
                 throw new BadRequestException("Requested seats exceeds the available seats");
             }
 
-            // Update the flight package to reduce available seats
-            serviceCalls.updateFlightPackage(booking.getPackageId(), flightResponse.getAvailableSeats()-1).block();
+            // publish an update to update flight package to reduce available seats
+            FlightUpdatePayload flightUpdatePayload = FlightUpdatePayload
+                    .builder()
+                    .availableSeats(flightResponse.getAvailableSeats()-booking.getNumberOfSeats())
+                    .build();
+            flightPackageUpdate.send("flightPackageUpdate", flightUpdatePayload);
+//            serviceCalls.updateFlightPackage(booking.getPackageId(), flightResponse.getAvailableSeats()-booking.getNumberOfSeats()).block();
 
             // Save the booking in DB
             Float totalPrice = booking.getNumberOfSeats()*flightResponse.getPrice();
@@ -130,6 +146,24 @@ public class BookingServiceImpl implements BookingService {
             booking.setBookingStatus(BookingStatus.PENDING.toString());
             booking.setPaymentStatus(PaymentStatus.PENDING.toString());
             Booking savedBooking = bookingRepo.save(booking);
+
+            // get user details
+            UserResponse userResponse = serviceCalls
+                    .getUserInfo(savedBooking.getUserId())
+                    .block();
+
+            if (userResponse == null){
+                throw new NotFoundException("user record not found to process booking");
+            }
+
+            // publish payment update to process payment
+            PaymentUpdatePayload paymentUpdatePayload = PaymentUpdatePayload
+                    .builder()
+                    .email(userResponse.getEmail())
+                    .amount(savedBooking.getTotalPrice())
+                    .bookingId(savedBooking.getId())
+                    .build();
+            paymentUpdate.send("paymentUpdate", paymentUpdatePayload);
 
             // Prepare and return success response
             ResponseDTO response = AppUtils.getResponseDto("Booking added successfully", HttpStatus.CREATED, savedBooking);
@@ -149,18 +183,18 @@ public class BookingServiceImpl implements BookingService {
 
     /**
      * @description Updates an existing booking record identified by ID.
-     * @param bookingId the ID of the booking to update.
      * @param booking the updated booking data.
      * @return ResponseEntity containing the updated booking record and status info.
      * @author Emmanuel Yidana
      * @createdAt 4th, June 2025
      */
+    @KafkaListener(topics = "bookingUpdate", containerFactory = "bookingUpdateKafkaListenerContainerFactory", groupId = "booking-group")
     @Override
-    public ResponseEntity<ResponseDTO> updateBooking(UUID bookingId, Booking booking) {
+    public ResponseEntity<ResponseDTO> updateBooking(Booking booking) {
 
         try {
             log.info("in update booking record method:->>>>");
-            Booking existingData = bookingRepo.findById(bookingId)
+            Booking existingData = bookingRepo.findById(booking.getId())
                     .orElseThrow(()-> new NotFoundException("booking record not found"));
 
             existingData.setBookingStatus(booking.getBookingStatus() !=null? booking.getBookingStatus().toUpperCase() : existingData.getBookingStatus());
@@ -172,6 +206,50 @@ public class BookingServiceImpl implements BookingService {
             existingData.setNumberOfSeats(booking.getNumberOfSeats() !=null? booking.getNumberOfSeats() : existingData.getNumberOfSeats());
 
             Booking res = bookingRepo.save(existingData);
+
+           if (
+                   booking.getBookingStatus().equalsIgnoreCase(BookingStatus.CONFIRMED.toString()) &&
+                   booking.getPaymentStatus().equalsIgnoreCase(PaymentStatus.PAID.toString())
+           ){
+                // get user details
+                UserResponse userResponse = serviceCalls
+                        .getUserInfo(existingData.getUserId())
+                        .block();
+
+                if (userResponse == null){
+                    throw new NotFoundException("user record not found to process booking");
+                }
+
+                // get flight package details
+                FlightPackageResponse flightResponse = serviceCalls
+                        .getFlightPackage(booking.getPackageId())
+                        .block(); // block to wait for response
+
+                if (flightResponse == null){
+                    throw new NotFoundException("flight record not found to process booking");
+                }
+
+                // publish an update to the notification service to send confirmation notification to user
+                BookingNotificationPayload bookingNotificationPayload = BookingNotificationPayload
+                        .builder()
+                        .email(userResponse.getEmail())
+                        .airline(flightResponse.getAirline())
+                        .arrivalDate(flightResponse.getArrivalDate())
+                        .classType(flightResponse.getClassType())
+                        .departure(flightResponse.getDeparture())
+                        .departureDate(flightResponse.getDepartureDate())
+                        .price(flightResponse.getPrice())
+                        .destination(flightResponse.getDestination())
+                        .firstName(userResponse.getFirstName())
+                        .lastName(userResponse.getLastName())
+                        .numberOfSeats(existingData.getNumberOfSeats())
+                        .tripType(flightResponse.getTripType())
+                        .totalPrice(flightResponse.getPrice())
+                        .seatNumber(existingData.getSeatNumber())
+                        .arrivalDate(flightResponse.getArrivalDate())
+                        .build();
+                bookingNotification.send("bookingNotification",bookingNotificationPayload);
+            }
 
             ResponseDTO response = AppUtils.getResponseDto("booking updated successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);

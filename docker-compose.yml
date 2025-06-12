@@ -27,6 +27,20 @@ services:
     networks:
       - travel-net
 
+  # flight-service:
+  #   restart: always
+  #   image: eyidana/flight-service-java:0.01
+  #   container_name: flight-service
+  #   build:
+  #     context: ./flight-service
+  #     dockerfile: ./Dockerfile
+  #   depends_on:
+  #     - config-server
+  #   ports:
+  #     - "9091:9091"
+  #   networks:
+  #     - travel-net
+
   payment-service:
     restart: always
     image: eyidana/payment-service-java:0.01

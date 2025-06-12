@@ -99,7 +99,6 @@ public class FlightPackageServiceImpl implements FlightPackageService {
 
     /**
      * @description Updates an existing flight package record identified by ID.
-     * @param packageId the ID of the flight package to update.
      * @param flightPackage the updated flight package data.
      * @return ResponseEntity containing the updated flight package record and status info.
      * @author Emmanuel Yidana
@@ -107,10 +106,10 @@ public class FlightPackageServiceImpl implements FlightPackageService {
      @Override
      */
     @KafkaListener(topics = "flightPackageUpdate", containerFactory = "flightPackageKafkaListenerContainerFactory", groupId = "flight-group")
-    public ResponseEntity<ResponseDTO> updateFlightPackage(UUID packageId, FlightPackage flightPackage) {
+    public ResponseEntity<ResponseDTO> updateFlightPackage(FlightPackage flightPackage) {
         try {
-            log.info("in update flight package record method:->>>>");
-            FlightPackage existingData = flightPackageRepo.findById(packageId)
+            log.info("About to update flight package record:->>>>{}", flightPackage);
+            FlightPackage existingData = flightPackageRepo.findById(flightPackage.getId())
                     .orElseThrow(()-> new NotFoundException("flight package record not found"));
 
             existingData.setAirlineId(flightPackage.getAirlineId() !=null?flightPackage.getAirlineId():existingData.getAirlineId());
@@ -130,6 +129,7 @@ public class FlightPackageServiceImpl implements FlightPackageService {
 
             // saving updated flight package details
             FlightPackage res = flightPackageRepo.save(existingData);
+            log.info("Flight package updated successfully:->>>");
 
             ResponseDTO response = AppUtils.getResponseDto("flight package updated successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);

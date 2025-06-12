@@ -1,5 +1,6 @@
 package booking_service.external;
 
+import booking_service.config.AppProperties;
 import booking_service.external.dto.UserResponse;
 import booking_service.exception.BadRequestException;
 import booking_service.exception.ServerException;
@@ -20,10 +21,12 @@ import java.util.UUID;
 public class ServiceCalls {
 
     private final WebClient webClient;
+    private final AppProperties appProperties;
 
     @Autowired
-    public ServiceCalls(WebClient webClient) {
+    public ServiceCalls(WebClient webClient, AppProperties appProperties) {
         this.webClient = webClient;
+        this.appProperties = appProperties;
     }
 
 
@@ -36,7 +39,7 @@ public class ServiceCalls {
      * */
     public Mono<FlightPackageResponse> getFlightPackage(UUID id) {
         return webClient.get()
-                .uri("/flight-package/" + id)
+                .uri(appProperties.getFlightServiceUrl().concat("/")+id)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response ->
                         response.bodyToMono(String.class) // Optional: read error message
@@ -62,7 +65,7 @@ public class ServiceCalls {
         FlightPackageResponse flightPackage = new FlightPackageResponse();
         flightPackage.setAvailableSeats(updatedSeats);
         return webClient.put()
-                .uri("/flight-package/"+id)
+                .uri(appProperties.getFlightServiceUrl().concat("/")+id)
                 .bodyValue(flightPackage)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response ->
@@ -86,7 +89,7 @@ public class ServiceCalls {
      * */
     public Mono<UserResponse> getUserInfo(UUID id) {
         return webClient.get()
-                .uri("/user-service/" + id)
+                .uri(appProperties.getUserServiceUrl().concat("/")+id)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response ->
                         response.bodyToMono(String.class) // Optional: read error message

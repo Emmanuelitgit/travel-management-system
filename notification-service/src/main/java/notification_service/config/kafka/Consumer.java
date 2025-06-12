@@ -2,6 +2,7 @@ package notification_service.config.kafka;
 
 import notification_service.dto.BookingPayload;
 import notification_service.dto.OTPPayload;
+import notification_service.dto.PaymentAuthorizationPayload;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,6 +61,24 @@ public class Consumer {
     public ConcurrentKafkaListenerContainerFactory<String, BookingPayload> bookingKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, BookingPayload> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(bookingConsumerFactory());
+        return factory;
+    }
+
+
+    // payment notification consumer config
+    @Bean
+    public ConsumerFactory<String, PaymentAuthorizationPayload> paymentConsumerFactory() {
+        Map<String, Object> props = commonConfigs("payment-group");
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                new JsonDeserializer<>(PaymentAuthorizationPayload.class, false));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, PaymentAuthorizationPayload> paymentKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, PaymentAuthorizationPayload> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(paymentConsumerFactory());
         return factory;
     }
 

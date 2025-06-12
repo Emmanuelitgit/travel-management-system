@@ -11,9 +11,5 @@ import java.util.UUID;
 
 @Repository
 public interface BookingRepo extends JpaRepository<Booking, UUID> {
-
-    @Query(value = "SELECT * FROM bookings_tb ", nativeQuery = true)
-    List<BookingProjection> fetchAllBookings();
-
     Optional<Booking> findBySeatNumber(Integer seatNumber);
 }

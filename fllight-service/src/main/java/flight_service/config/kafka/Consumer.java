@@ -1,6 +1,7 @@
 package flight_service.config.kafka;
 
 import flight_service.config.kafka.dto.FlightUpdatePayload;
+import flight_service.models.FlightPackage;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,17 +30,17 @@ public class Consumer {
 
 // OTP notification consumer config
     @Bean
-    public ConsumerFactory<String, FlightUpdatePayload> flightPackageConsumerFactory() {
+    public ConsumerFactory<String, FlightPackage> flightPackageConsumerFactory() {
         Map<String, Object> props = commonConfigs("flight-group");
         return new DefaultKafkaConsumerFactory<>(
                 props,
                 new StringDeserializer(),
-                new JsonDeserializer<>(FlightUpdatePayload.class, false));
+                new JsonDeserializer<>(FlightPackage.class, false));
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, FlightUpdatePayload> flightPackageKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, FlightUpdatePayload> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, FlightPackage> flightPackageKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, FlightPackage> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(flightPackageConsumerFactory());
         return factory;
     }

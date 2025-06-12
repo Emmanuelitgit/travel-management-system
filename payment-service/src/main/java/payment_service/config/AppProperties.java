@@ -12,5 +12,6 @@ import org.springframework.stereotype.Component;
 public class AppProperties {
     private String payStackUrl;
     private String payStackSecret;
-    private String bookingUrl;
+    private String bookingServiceUrl;
+    private String userServiceUrl;
 }

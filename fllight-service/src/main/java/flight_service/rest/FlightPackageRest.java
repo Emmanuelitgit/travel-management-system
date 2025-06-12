@@ -35,7 +35,8 @@ public class FlightPackageRest {
 
     @PutMapping("/{packageId}")
     public ResponseEntity<ResponseDTO> updateFlightClass(@PathVariable UUID packageId, @RequestBody FlightPackage flightPackage){
-        return flightPackageServiceImpl.updateFlightPackage(packageId, flightPackage);
+        flightPackage.setId(packageId);
+        return flightPackageServiceImpl.updateFlightPackage(flightPackage);
     }
 
     @GetMapping("/{packageId}")

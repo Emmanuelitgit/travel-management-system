@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import payment_service.config.kafka.dto.BookingUpdatePayload;
+import payment_service.config.kafka.dto.PaymentAuthorizationPayload;
+import payment_service.config.kafka.dto.PaymentUpdatePayload;
 import payment_service.dto.ResponseDTO;
 import payment_service.exception.BadRequestException;
 import payment_service.exception.NotFoundException;
@@ -29,15 +31,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final ServiceCalls serviceCalls;
     private final PaymentRepo paymentRepo;
-    private final KafkaTemplate<String, BookingUpdatePayload> bookingUpdate;
-    private final KafkaTemplate<String, String> paymentNotification;
+    private final KafkaTemplate<String, PaymentAuthorizationPayload> paymentNotificationPkafkaTemplate;
+    private final KafkaTemplate<String, BookingUpdatePayload> bookingUpdateKafkaTemplate;
 
     @Autowired
-    public PaymentServiceImpl(ServiceCalls serviceCalls, PaymentRepo paymentRepo, KafkaTemplate<String, BookingUpdatePayload> bookingUpdate, KafkaTemplate<String, String> paymentNotification) {
+    public PaymentServiceImpl(ServiceCalls serviceCalls, PaymentRepo paymentRepo, KafkaTemplate<String, PaymentAuthorizationPayload> paymentNotificationPkafkaTemplate, KafkaTemplate<String, BookingUpdatePayload> bookingUpdateKafkaTemplate) {
         this.serviceCalls = serviceCalls;
         this.paymentRepo = paymentRepo;
-        this.bookingUpdate = bookingUpdate;
-        this.paymentNotification = paymentNotification;
+        this.paymentNotificationPkafkaTemplate = paymentNotificationPkafkaTemplate;
+        this.bookingUpdateKafkaTemplate = bookingUpdateKafkaTemplate;
     }
 
     /**
@@ -65,31 +67,44 @@ public class PaymentServiceImpl implements PaymentService {
 
     /**
      * @description Saves a new payment record to the database.
-     * @param payment the payment record to save.
+     * @param paymentUpdatePayload the payment record to save.
      * @return ResponseEntity containing the saved payment record and status info.
      * @author Emmanuel Yidana
      * @createdAt 7th, June 2025
      */
-    @KafkaListener(topics = "paymentUpdate", containerFactory = "bookingPaymentKafkaListenerContainerFactory", groupId = "booking-group")
+    @KafkaListener(topics = "hey", containerFactory = "paymentUpdateKafkaListenerContainerFactory", groupId = "payment-group")
     @Override
-    public ResponseEntity<ResponseDTO> makePayment(PaymentPayload payment) {
+    public ResponseEntity<ResponseDTO> makePayment(PaymentUpdatePayload paymentUpdatePayload) {
 
+        log.info("About to initiate payment process:->>>>>");
+//        BookingResponse bookingResponse = serviceCalls.updateBooking(payment.getBookingId(), bookingUpdatePayload).block();
+
+        // make a call to payStack to initiate payment process
+        log.info("About to instantiate payment process:->>>>{}", paymentUpdatePayload.getAmount());
+        PaymentResponse paymentResponse = serviceCalls.makePayment(paymentUpdatePayload).block();
+        assert paymentResponse != null;
+        log.info("Payment response:->>>{}", paymentResponse);
+
+        // publish an update to notification service to send payment authorization to user
+        log.info("About to publish an update to notification service:->>>>");
+        PaymentAuthorizationPayload paymentAuthorizationPayload = PaymentAuthorizationPayload
+                .builder()
+                .authorization_url(paymentResponse.getData().getAuthorization_url())
+                .email(paymentUpdatePayload.getEmail())
+                .build();
+        paymentNotificationPkafkaTemplate.send("paymentNotification", paymentAuthorizationPayload);
+
+        // publish an update to booking service to update booking status
+        log.info("About to publish an update to booking service:->>>>{} {}", PaymentStatus.PROCESSING, BookingStatus.AWAITING_PAYMENT);
         BookingUpdatePayload bookingUpdatePayload = BookingUpdatePayload
                 .builder()
-                .id(payment.getBookingId())
+                .id(paymentUpdatePayload.getBookingId())
                 .paymentStatus(PaymentStatus.PROCESSING.toString())
                 .bookingStatus(BookingStatus.AWAITING_PAYMENT.toString())
                 .build();
+        bookingUpdateKafkaTemplate.send("bookingUpdate", bookingUpdatePayload);
 
-//        BookingResponse bookingResponse = serviceCalls.updateBooking(payment.getBookingId(), bookingUpdatePayload).block();
-        // make a call to payStack to initiate payment process
-        PaymentResponse paymentResponse = serviceCalls.makePayment(payment).block();
-        assert paymentResponse != null;
-
-        // publish an update to notification service to send payment authorization to user
-        paymentNotification.send("paymentNotification", paymentResponse.getData().getAuthorization_url());
-        bookingUpdate.send("bookingUpdate", bookingUpdatePayload);
-
+        log.info("Payment process initiated successfully:->>>>");
         ResponseDTO responseDTO = AppUtils.getResponseDto("payment success", HttpStatus.OK);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
@@ -201,8 +216,8 @@ public class PaymentServiceImpl implements PaymentService {
                 // make call to booking service to update booking status
 //                serviceCalls.updateBooking(existingData.getBookingId(), bookingUpdatePayload).block();
 
-                // publish an update to booking service
-                bookingUpdate.send("bookingUpdate", bookingUpdatePayload);
+                // publish an update to booking service to update booking status
+                bookingUpdateKafkaTemplate.send("bookingUpdate", bookingUpdatePayload);
 
                 // save updated payment records
                 existingData.setPaymentStatus(PaymentStatus.PAID.toString());

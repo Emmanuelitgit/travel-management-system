@@ -43,6 +43,7 @@ public class Config {
     WebClient webClient(){
         return WebClient
                 .builder()
+                .baseUrl("http://localhost:5000")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

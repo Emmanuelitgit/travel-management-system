@@ -33,10 +33,10 @@ public class OTPServiceImpl implements OTPService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final OTPRepo otpRepo;
-    private final KafkaTemplate<String, OTPPayload> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
-    public OTPServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, OTPRepo otpRepo, KafkaTemplate<String, OTPPayload> kafkaTemplate) {
+    public OTPServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, OTPRepo otpRepo, KafkaTemplate<String, Object> kafkaTemplate) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
         this.otpRepo = otpRepo;
@@ -60,11 +60,11 @@ public class OTPServiceImpl implements OTPService {
      * @auther Emmanuel Yidana
      * @createdAt 10h May 2025
      */
-    @KafkaListener(topics = "otpNotification", containerFactory = "kafkaListenerContainerFactory", groupId = "otp-group")
+    @KafkaListener(topics = "otpNotification", containerFactory = "otpKafkaListenerContainerFactory", groupId = "otp-group")
     @Override
     public void sendOtp(OTPPayload otpPayload) {
         try {
-            log.info("In send otp method:->>>>>>");
+            log.info("About to send otp code to user:->>>{}", otpPayload.getEmail());
 
             // check if user have an existing otp. delete it if exist before sending a new one.
             OTP otpExist = otpRepo.findByUserId(otpPayload.getUserId());
@@ -106,6 +106,7 @@ public class OTPServiceImpl implements OTPService {
 
     // a helper method for saving otp record to the db
     public OTP saveOTP(OTPPayload otpPayload){
+        log.info("About to save otp record:->>>>{}", otpPayload.getEmail());
         OTP otp = new OTP();
         otp.setOtpCode(otpPayload.getOtpCode());
         otp.setStatus(false);

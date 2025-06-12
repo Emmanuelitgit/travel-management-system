@@ -1,4 +1,4 @@
-package payment_service.external.dto;
+package payment_service.config.kafka.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingUpdatePayload {
-    private UUID id;
-    private String bookingStatus;
-    private String paymentStatus;
+public class PaymentUpdatePayload {
+    private String email;
+    private Float amount;
+    private UUID bookingId;
 }

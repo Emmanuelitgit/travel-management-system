@@ -1,6 +1,8 @@
 package user_service.serviceImpl;
 
 
+import org.springframework.kafka.core.KafkaTemplate;
+import user_service.config.kafka.OTPPayload;
 import user_service.dto.*;
 import user_service.exception.NotFoundException;
 import user_service.external.KeycloakService;
@@ -31,9 +33,10 @@ public class UserServiceImpl implements UserService {
     private final RoleSetupRepo roleSetupRepo;
     private final RoleSetupServiceImpl roleSetupServiceImpl;
     private final KeycloakService keycloakService;
+    private final KafkaTemplate<String, OTPPayload> kafkaTemplate;
 
     @Autowired
-    public UserServiceImpl(UserRepo userRepo, DTOMapper dtoMapper, PasswordEncoder passwordEncoder, UserRoleServiceImpl userRoleServiceImpl, RoleSetupRepo roleSetupRepo, RoleSetupServiceImpl roleSetupServiceImpl, KeycloakService keycloakService) {
+    public UserServiceImpl(UserRepo userRepo, DTOMapper dtoMapper, PasswordEncoder passwordEncoder, UserRoleServiceImpl userRoleServiceImpl, RoleSetupRepo roleSetupRepo, RoleSetupServiceImpl roleSetupServiceImpl, KeycloakService keycloakService, KafkaTemplate<String, OTPPayload> kafkaTemplate) {
         this.userRepo = userRepo;
         this.dtoMapper = dtoMapper;
         this.passwordEncoder = passwordEncoder;
@@ -41,6 +44,7 @@ public class UserServiceImpl implements UserService {
         this.roleSetupRepo = roleSetupRepo;
         this.roleSetupServiceImpl = roleSetupServiceImpl;
         this.keycloakService = keycloakService;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     /**
@@ -88,6 +92,16 @@ public class UserServiceImpl implements UserService {
            userRoleServiceImpl.saveUserRole(userResponse.getId(), userPayloadDTO.getRole());
            log.info("User created successfully:->>>>>>");
            keycloakService.saveUserToKeycloak(userPayloadDTO);
+
+           // publish an update to send otp
+           OTPPayload otpPayload = OTPPayload
+                   .builder()
+                   .email(userResponse.getEmail())
+                   .firstName(userResponse.getFirstName())
+                   .lastName(userResponse.getLastName())
+                   .userId(userResponse.getId())
+                   .build();
+           kafkaTemplate.send("otpNotification", otpPayload);
            UserDTO userDTO = DTOMapper.toUserDTO(userResponse, role.getName());
            ResponseDTO  response = AppUtils.getResponseDto("user record added successfully", HttpStatus.CREATED, userDTO);
            return new ResponseEntity<>(response, HttpStatus.CREATED);

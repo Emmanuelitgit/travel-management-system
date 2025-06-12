@@ -1,6 +1,7 @@
 package booking_service.config.kafka;
 
 import booking_service.config.kafka.dto.BookingUpdatePayload;
+import booking_service.models.Booking;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,19 +28,19 @@ public class Consumer {
     private String valueDeserializer;
 
 
-// OTP notification consumer config
+// Booking update consumer config
     @Bean
-    public ConsumerFactory<String, BookingUpdatePayload> bookingUpdateConsumerFactory() {
+    public ConsumerFactory<String, Booking> bookingUpdateConsumerFactory() {
         Map<String, Object> props = commonConfigs("booking-group");
         return new DefaultKafkaConsumerFactory<>(
                 props,
                 new StringDeserializer(),
-                new JsonDeserializer<>(BookingUpdatePayload.class, false));
+                new JsonDeserializer<>(Booking.class, false));
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, BookingUpdatePayload> bookingUpdateKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, BookingUpdatePayload> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, Booking> bookingUpdateKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Booking> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(bookingUpdateConsumerFactory());
         return factory;
     }

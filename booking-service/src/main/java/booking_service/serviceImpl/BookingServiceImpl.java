@@ -1,6 +1,7 @@
 package booking_service.serviceImpl;
 
 import booking_service.config.kafka.dto.BookingNotificationPayload;
+import booking_service.config.kafka.dto.BookingUpdatePayload;
 import booking_service.config.kafka.dto.FlightUpdatePayload;
 import booking_service.config.kafka.dto.PaymentUpdatePayload;
 import booking_service.dto.BookingResponse;
@@ -36,17 +37,17 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepo bookingRepo;
     private final ServiceCalls serviceCalls;
-    private final KafkaTemplate<String, BookingNotificationPayload> bookingNotification;
-    private final KafkaTemplate<String, PaymentUpdatePayload> paymentUpdate;
-    private final KafkaTemplate<String, FlightUpdatePayload> flightPackageUpdate;
+    private final KafkaTemplate<String, PaymentUpdatePayload> paymentUpdatekafkaTemplate;
+    private final KafkaTemplate<String, FlightUpdatePayload> flightPackageUpdatekafkaTemplate;
+    private final KafkaTemplate<String, BookingNotificationPayload> bookingNotificationkafkaTemplate;
 
     @Autowired
-    public BookingServiceImpl(BookingRepo bookingRepo, ServiceCalls serviceCalls, KafkaTemplate<String, BookingNotificationPayload> bookingNotification, KafkaTemplate<String, PaymentUpdatePayload> paymentUpdate, KafkaTemplate<String, FlightUpdatePayload> flightPackageUpdate) {
+    public BookingServiceImpl(BookingRepo bookingRepo, ServiceCalls serviceCalls, KafkaTemplate<String, PaymentUpdatePayload> paymentUpdatekafkaTemplate, KafkaTemplate<String, FlightUpdatePayload> flightPackageUpdatekafkaTemplate, KafkaTemplate<String, BookingNotificationPayload> bookingNotificationkafkaTemplate) {
         this.bookingRepo = bookingRepo;
         this.serviceCalls = serviceCalls;
-        this.bookingNotification = bookingNotification;
-        this.paymentUpdate = paymentUpdate;
-        this.flightPackageUpdate = flightPackageUpdate;
+        this.paymentUpdatekafkaTemplate = paymentUpdatekafkaTemplate;
+        this.flightPackageUpdatekafkaTemplate = flightPackageUpdatekafkaTemplate;
+        this.bookingNotificationkafkaTemplate = bookingNotificationkafkaTemplate;
     }
 
     /**
@@ -67,8 +68,15 @@ public class BookingServiceImpl implements BookingService {
            List<BookingResponse> responses = new ArrayList<>();
            bookings.forEach((booking)->{
 
+               // make request to fetch user details
+               log.info("About to fetch user details:->>>>");
+               UserResponse userResponse = serviceCalls.getUserInfo(booking.getUserId()).block();
+
+               // make request to fetch flight details
+               log.info("About to fetch flight details:->>>>");
                FlightPackageResponse flightPackageResponse = serviceCalls.getFlightPackage(booking.getPackageId()).block();
 
+               log.info("Binding booking response:->>>");
                BookingResponse bookingResponse = BookingResponse
                        .builder()
                        .bookingStatus(booking.getBookingStatus())
@@ -76,6 +84,7 @@ public class BookingServiceImpl implements BookingService {
                        .totalPrice(booking.getTotalPrice())
                        .seatNumber(booking.getSeatNumber())
                        .bookingId(booking.getId())
+                       .user(userResponse)
                        .flight(flightPackageResponse)
                        .build();
 
@@ -116,6 +125,7 @@ public class BookingServiceImpl implements BookingService {
             }
 
             // Check flight package availability via WebClient (block for response)
+            log.info("About to make request to flight-service:->>>>");
             FlightPackageResponse flightResponse = serviceCalls
                     .getFlightPackage(booking.getPackageId())
                     .block(); // block to wait for response
@@ -133,14 +143,17 @@ public class BookingServiceImpl implements BookingService {
             }
 
             // publish an update to update flight package to reduce available seats
+            log.info("About to publish an update to payment service:->>>>");
             FlightUpdatePayload flightUpdatePayload = FlightUpdatePayload
                     .builder()
+                    .id(flightResponse.getId())
                     .availableSeats(flightResponse.getAvailableSeats()-booking.getNumberOfSeats())
                     .build();
-            flightPackageUpdate.send("flightPackageUpdate", flightUpdatePayload);
+            flightPackageUpdatekafkaTemplate.send("flightPackageUpdate", flightUpdatePayload);
 //            serviceCalls.updateFlightPackage(booking.getPackageId(), flightResponse.getAvailableSeats()-booking.getNumberOfSeats()).block();
 
             // Save the booking in DB
+            log.info("About to save booking record to db:->>>>>");
             Float totalPrice = booking.getNumberOfSeats()*flightResponse.getPrice();
             booking.setTotalPrice(totalPrice);
             booking.setBookingStatus(BookingStatus.PENDING.toString());
@@ -157,15 +170,17 @@ public class BookingServiceImpl implements BookingService {
             }
 
             // publish payment update to process payment
+            log.info("About to publish an update to payment service:->>>");
             PaymentUpdatePayload paymentUpdatePayload = PaymentUpdatePayload
                     .builder()
                     .email(userResponse.getEmail())
                     .amount(savedBooking.getTotalPrice())
                     .bookingId(savedBooking.getId())
                     .build();
-            paymentUpdate.send("paymentUpdate", paymentUpdatePayload);
+            paymentUpdatekafkaTemplate.send("hey", paymentUpdatePayload);
 
             // Prepare and return success response
+            log.info("Booking was successfully:->>>>>");
             ResponseDTO response = AppUtils.getResponseDto("Booking added successfully", HttpStatus.CREATED, savedBooking);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
@@ -221,7 +236,8 @@ public class BookingServiceImpl implements BookingService {
                 }
 
                 // get flight package details
-                FlightPackageResponse flightResponse = serviceCalls
+               log.info("About to make request to flight-service:->>>>");
+               FlightPackageResponse flightResponse = serviceCalls
                         .getFlightPackage(booking.getPackageId())
                         .block(); // block to wait for response
 
@@ -230,7 +246,8 @@ public class BookingServiceImpl implements BookingService {
                 }
 
                 // publish an update to the notification service to send confirmation notification to user
-                BookingNotificationPayload bookingNotificationPayload = BookingNotificationPayload
+               log.info("About to publish an update to notification service:->>>>");
+               BookingNotificationPayload bookingNotificationPayload = BookingNotificationPayload
                         .builder()
                         .email(userResponse.getEmail())
                         .airline(flightResponse.getAirline())
@@ -248,9 +265,10 @@ public class BookingServiceImpl implements BookingService {
                         .seatNumber(existingData.getSeatNumber())
                         .arrivalDate(flightResponse.getArrivalDate())
                         .build();
-                bookingNotification.send("bookingNotification",bookingNotificationPayload);
+               bookingNotificationkafkaTemplate.send("bookingNotification",bookingNotificationPayload);
             }
 
+           log.info("Booking update was successfully");
             ResponseDTO response = AppUtils.getResponseDto("booking updated successfully", HttpStatus.OK, res);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotFoundException e) {
@@ -303,7 +321,12 @@ public class BookingServiceImpl implements BookingService {
             Booking booking = bookingRepo.findById(bookingId)
                     .orElseThrow(()-> new NotFoundException("booking record not found"));
 
+            // make request to fetch user details
+            log.info("About to fetch user details:->>>>");
+            UserResponse userResponse = serviceCalls.getUserInfo(booking.getUserId()).block();
 
+            // make a request to get flight details
+            log.info("About to fetch flight details:->>>");
             FlightPackageResponse flightPackageResponse = serviceCalls.getFlightPackage(booking.getPackageId()).block();
 
             BookingResponse bookingResponse = BookingResponse
@@ -314,6 +337,7 @@ public class BookingServiceImpl implements BookingService {
                     .seatNumber(booking.getSeatNumber())
                     .bookingId(booking.getId())
                     .flight(flightPackageResponse)
+                    .user(userResponse)
                     .build();
 
 

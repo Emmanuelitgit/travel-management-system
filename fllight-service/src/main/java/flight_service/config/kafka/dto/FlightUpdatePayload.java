@@ -6,11 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class FlightUpdatePayload {
+    private UUID id;
     private Integer availableSeats;
 }

@@ -39,6 +39,7 @@ public class Config {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.authorizeHttpRequests((auth)->{
+            auth.requestMatchers("/swagger-ui/*");
             auth.anyRequest().authenticated();
         })
                 .csrf((AbstractHttpConfigurer::disable))
@@ -61,13 +62,4 @@ public class Config {
         return new AuditorAwareImpl();
     }
 
-    @Bean
-    JwtDecoder jwtDecoder(){
-        return new JwtDecoder() {
-            @Override
-            public Jwt decode(String token) throws JwtException {
-                return null;
-            }
-        };
-    }
 }

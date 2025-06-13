@@ -1,5 +1,6 @@
 package flight_service.serviceImpl;
 
+import flight_service.dto.PaginationPayload;
 import flight_service.dto.ResponseDTO;
 import flight_service.dto.enums.TripType;
 import flight_service.dto.projections.FlightPackageProjection;
@@ -14,6 +15,8 @@ import flight_service.util.AppUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -50,16 +53,34 @@ public class FlightPackageServiceImpl implements FlightPackageService {
      * @createdAt 3rd, June 2025
      */
     @Override
-    public ResponseEntity<ResponseDTO> findAll() {
+    public ResponseEntity<ResponseDTO> findAll(PaginationPayload paginationPayload) {
         try {
-            List<FlightPackageProjection> flightPackageProjectionList = flightPackageRepo.fetchAllFlightPackages();
-            log.info("packages:->>>>{}", flightPackageProjectionList);
-            if (flightPackageProjectionList.isEmpty()){
-                throw new NotFoundException("no flight package record found");
+            log.info("About to fetch flight packages:->>>>>");
+
+            ResponseDTO response = null;
+
+            // pagination is true, fetch only the paginated data
+            if (paginationPayload.isPaginate()){
+                Pageable pageable = AppUtils.getPageRequest(paginationPayload);
+                Page<List<FlightPackageProjection>> paginatedList = flightPackageRepo.fetchAllFlightPackages(paginationPayload.getAirline(), pageable);
+                log.info("DATA:->>>{}", paginatedList);
+                if (paginatedList.isEmpty()){
+                    throw new NotFoundException("no flight package record found");
+                }
+                response = AppUtils.getResponseDto("flight package records", HttpStatus.OK, paginatedList);
+
+                // else if pagination is false, then fetch everything
+            }else {
+                List<FlightPackageProjection> flightPackages = flightPackageRepo.fetchAllFlightPackages(paginationPayload.getAirline());
+                if (flightPackages.isEmpty()){
+                    throw new NotFoundException("no flight package record found");
+                }
+                response = AppUtils.getResponseDto("flight package records", HttpStatus.OK, flightPackages);
             }
 
-            ResponseDTO response = AppUtils.getResponseDto("flight package records", HttpStatus.OK, flightPackageProjectionList);
+            log.info("Request was successfully:->>>>>>");
             return new ResponseEntity<>(response, HttpStatus.OK);
+
         } catch (NotFoundException e) {
             throw new NotFoundException(e.getMessage());
         } catch (Exception e) {

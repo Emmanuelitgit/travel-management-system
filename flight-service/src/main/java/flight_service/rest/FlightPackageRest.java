@@ -1,5 +1,6 @@
 package flight_service.rest;
 
+import flight_service.dto.PaginationPayload;
 import flight_service.dto.ResponseDTO;
 import flight_service.models.FlightClassType;
 import flight_service.models.FlightPackage;
@@ -24,8 +25,24 @@ public class FlightPackageRest {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseDTO> findAll(){
-        return flightPackageServiceImpl.findAll();
+    public ResponseEntity<ResponseDTO> findAll(
+            @RequestParam(name = "page", defaultValue = "1", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "paginate", defaultValue = "false", required = false) boolean paginate,
+            @RequestParam(name = "destination", required = false) String destination,
+            @RequestParam(name = "departure", required = false) String departure,
+            @RequestParam(name = "airline", required = false) String airline
+    ){
+        PaginationPayload paginationPayload = PaginationPayload
+                .builder()
+                .page(page)
+                .size(size)
+                .paginate(paginate)
+                .airline(airline)
+                .departure(departure)
+                .destination(destination)
+                .build();
+        return flightPackageServiceImpl.findAll(paginationPayload);
     }
 
     @PostMapping

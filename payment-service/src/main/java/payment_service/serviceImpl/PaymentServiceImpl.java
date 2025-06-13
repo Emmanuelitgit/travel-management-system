@@ -81,6 +81,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         // make a call to payStack to initiate payment process
         log.info("About to instantiate payment process:->>>>{}", paymentUpdatePayload.getAmount());
+        // convert from peswas to cedis
+        paymentUpdatePayload.setAmount(paymentUpdatePayload.getAmount()*100);
         PaymentResponse paymentResponse = serviceCalls.makePayment(paymentUpdatePayload).block();
         assert paymentResponse != null;
         log.info("Payment response:->>>{}", paymentResponse);

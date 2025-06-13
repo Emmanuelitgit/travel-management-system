@@ -3,6 +3,7 @@ import flight_service.dto.PaginationPayload;
 import flight_service.dto.ResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -81,7 +82,19 @@ public class AppUtils {
      * @createdAt 16h April 2025
      */
     public static Pageable getPageRequest(PaginationPayload paginationPayload){
-        return PageRequest.of(paginationPayload.getPage()-1, paginationPayload.getSize());
+        Pageable pageable = null;
+        if (paginationPayload.isPaginate() && paginationPayload.getPage()<1){
+            pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, paginationPayload.getSize());
+        }
+        if (paginationPayload.isPaginate() && paginationPayload.getSize()<1){
+            PageRequest.of(paginationPayload.getPage(), DEFAULT_PAGE_SIZE);
+        }
+        if (paginationPayload.isPaginate() && paginationPayload.getPage()<1 && paginationPayload.getSize()<1){
+            pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        }else {
+            pageable = PageRequest.of(paginationPayload.getPage()-1, paginationPayload.getSize());
+        }
+        return pageable;
     }
 
     /**

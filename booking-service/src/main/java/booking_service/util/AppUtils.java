@@ -83,6 +83,9 @@ public class AppUtils {
      * @createdAt 16h April 2025
      */
     public static Pageable getPageRequest(PaginationPayload paginationPayload){
+        if (paginationPayload.getPage() < 1 && paginationPayload.isPaginate()){
+            return PageRequest.of(DEFAULT_PAGE_NUMBER-1, paginationPayload.getSize());
+        }
         return PageRequest.of(paginationPayload.getPage()-1, paginationPayload.getSize());
     }
 

@@ -2,7 +2,6 @@ package flight_service.exception;
 
 import flight_service.dto.ResponseDTO;
 import flight_service.util.AppUtils;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +18,6 @@ public class ExceptionHandler {
     @org.springframework.web.bind.annotation.ExceptionHandler(UnAuthorizeException.class)
     ResponseEntity<ResponseDTO> handleUnAuthorizeException(UnAuthorizeException exception){
         ResponseDTO response = AppUtils.getResponseDto(exception.getMessage(), HttpStatus.valueOf(401));
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(401));
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(ExpiredJwtException.class)
-    ResponseEntity<ResponseDTO> handleExpiredJwtException(){
-        ResponseDTO response = AppUtils.getResponseDto("Invalid token", HttpStatus.valueOf(401));
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(401));
     }
 

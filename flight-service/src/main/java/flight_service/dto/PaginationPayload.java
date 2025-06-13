@@ -15,6 +15,9 @@ public class PaginationPayload {
     private boolean paginate;
     private int page;
     private int size;
-    private String category;
-    private String product;
+    private String airline;
+    private String departure;
+    private String destination;
+    private String classType;
+    private String tripType;
 }

@@ -110,13 +110,14 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public ResponseEntity<ResponseDTO> saveBooking(Booking booking) {
         try {
-            log.info("in save booking record method");
-
             // Validate payload
             if (booking == null) {
                 ResponseDTO response = AppUtils.getResponseDto("booking payload cannot be null", HttpStatus.BAD_REQUEST);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
+
+            // one seat per request. NB: van be adjusted future
+            booking.setNumberOfSeats(1);
 
             // Check if seat already booked for
             Optional<Booking> seatExist = bookingRepo.findBySeatNumber(booking.getSeatNumber());
@@ -144,6 +145,7 @@ public class BookingServiceImpl implements BookingService {
 
             // publish an update to update flight package to reduce available seats
             log.info("About to publish an update to payment service:->>>>");
+            log.info("in save booking record method");
             FlightUpdatePayload flightUpdatePayload = FlightUpdatePayload
                     .builder()
                     .id(flightResponse.getId())

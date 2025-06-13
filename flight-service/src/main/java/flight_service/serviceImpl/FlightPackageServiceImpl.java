@@ -62,7 +62,8 @@ public class FlightPackageServiceImpl implements FlightPackageService {
             // pagination is true, fetch only the paginated data
             if (paginationPayload.isPaginate()){
                 Pageable pageable = AppUtils.getPageRequest(paginationPayload);
-                Page<List<FlightPackageProjection>> paginatedList = flightPackageRepo.fetchAllFlightPackages(paginationPayload.getAirline(), pageable);
+                Page<List<FlightPackageProjection>> paginatedList = flightPackageRepo
+                        .fetchAllFlightPackages(paginationPayload.getAirline(), paginationPayload.getDestination(), paginationPayload.getDeparture(),pageable);
                 log.info("DATA:->>>{}", paginatedList);
                 if (paginatedList.isEmpty()){
                     throw new NotFoundException("no flight package record found");
@@ -71,7 +72,8 @@ public class FlightPackageServiceImpl implements FlightPackageService {
 
                 // else if pagination is false, then fetch everything
             }else {
-                List<FlightPackageProjection> flightPackages = flightPackageRepo.fetchAllFlightPackages(paginationPayload.getAirline());
+                List<FlightPackageProjection> flightPackages = flightPackageRepo
+                        .fetchAllFlightPackages(paginationPayload.getAirline(),paginationPayload.getDestination(), paginationPayload.getDeparture());
                 if (flightPackages.isEmpty()){
                     throw new NotFoundException("no flight package record found");
                 }

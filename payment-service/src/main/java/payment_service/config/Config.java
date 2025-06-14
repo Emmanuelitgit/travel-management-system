@@ -1,5 +1,6 @@
 package payment_service.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,15 +23,27 @@ import java.awt.*;
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class Config {
 
+    private final JwtAuthConverter jwtAuthConverter;
+
+    @Autowired
+    public Config(JwtAuthConverter jwtAuthConverter) {
+        this.jwtAuthConverter = jwtAuthConverter;
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests((auth)->{
                     auth
-                            .anyRequest().permitAll();
+                            .anyRequest().authenticated();
                 })
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .oauth2ResourceServer((auth->{
+                    auth.jwt(jwt->{
+                        jwt.jwtAuthenticationConverter(jwtAuthConverter);
+                    });
+                }))
                 .build();
     }
 

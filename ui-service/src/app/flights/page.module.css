@@ -2,7 +2,7 @@
   background-image: url("https://bsmedia.business-standard.com/_media/bs/img/article/2024-08/07/full/1722995892-9811.jpg?im=FeatureCrop,size=(826,465)");
   background-size: cover;
   background-position: center;
-  height: 100vh;
+  height: auto;
   right: 0;
   width: 100%;
   /* position: fixed; */
@@ -15,7 +15,7 @@
 .searchContainer {
   background-color: white;
   height: 20vh;
-  width: 70%;
+  width: 80%;
   padding: 15px;
   border-radius: 5px;
   display: flex;
@@ -54,7 +54,7 @@
 
 /* flight cards styles strt from here*/
 .flightsContainer {
-  background-color: lightgray;
+  /* background-color: lightgray; */
   height: 100%;
   width: 100%;
   border-radius: 13px;

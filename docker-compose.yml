@@ -1,5 +1,5 @@
 services:
-  user-service:
+  tms-user-service:
     restart: always
     image: eyidana/user-service-java:0.01
     container_name: user-service
@@ -13,7 +13,7 @@ services:
     networks:
       - travel-net
 
-  booking-service:
+  tms-booking-service:
     restart: always
     image: eyidana/booking-service-java:0.01
     container_name: booking-service
@@ -27,21 +27,21 @@ services:
     networks:
       - travel-net
 
-  # flight-service:
-  #   restart: always
-  #   image: eyidana/flight-service-java:0.01
-  #   container_name: flight-service
-  #   build:
-  #     context: ./flight-service
-  #     dockerfile: ./Dockerfile
-  #   depends_on:
-  #     - config-server
-  #   ports:
-  #     - "9091:9091"
-  #   networks:
-  #     - travel-net
+  tms-flight-service:
+    restart: always
+    image: eyidana/flight-service-java:0.01
+    container_name: flight-service
+    build:
+      context: ./flight-service
+      dockerfile: ./Dockerfile
+    depends_on:
+      - config-server
+    ports:
+      - "9091:9091"
+    networks:
+      - travel-net
 
-  payment-service:
+  tms-payment-service:
     restart: always
     image: eyidana/payment-service-java:0.01
     container_name: payment-service
@@ -55,7 +55,7 @@ services:
     networks:
       - travel-net
 
-  api-gateway:
+  tms-api-gateway:
     restart: always
     image: eyidana/api-gateway-java:0.01
     container_name: api-gateway
@@ -67,7 +67,7 @@ services:
     networks:
       - travel-net
 
-  service-registry:
+  tms-service-registry:
     restart: always
     image: eyidana/service-registry-java:0.01
     container_name: service-registry
@@ -79,7 +79,7 @@ services:
     networks:
       - travel-net
 
-  config-server:
+  tms-config-server:
     restart: always
     image: eyidana/config-server-java:0.01
     container_name: config-server

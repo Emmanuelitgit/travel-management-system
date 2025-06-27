@@ -1,23 +1,9 @@
-# Stage 1: Build stage
-FROM openjdk:19-jdk AS build
+FROM openjdk:17-jdk-slim
+
 WORKDIR /app
 
-COPY pom.xml mvnw ./
-COPY .mvn .mvn
-RUN chmod +x ./mvnw
-RUN ./mvnw dependency:go-offline
-
-COPY src ./src
-
-RUN ./mvnw clean package -DskipTests
-
-# Stage 2: Runtime stage
-FROM openjdk:19-jdk
-WORKDIR /app
+COPY booking-service-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 9095
-VOLUME /tmp
-
-COPY --from=build /app/target/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

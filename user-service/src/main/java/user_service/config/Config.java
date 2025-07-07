@@ -13,9 +13,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -40,7 +37,7 @@ public class Config {
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.authorizeHttpRequests((auth)->{
             auth.requestMatchers("/swagger-ui/*");
-            auth.anyRequest().authenticated();
+            auth.anyRequest().permitAll();
         })
                 .csrf((AbstractHttpConfigurer::disable))
                 .cors((AbstractHttpConfigurer::disable))

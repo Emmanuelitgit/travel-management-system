@@ -2,6 +2,7 @@ package flight_service.serviceImpl;
 
 import flight_service.dto.PaginationPayload;
 import flight_service.dto.ResponseDTO;
+import flight_service.dto.enums.SeatType;
 import flight_service.dto.enums.TripType;
 import flight_service.dto.projections.FlightPackageProjection;
 import flight_service.exception.BadRequestException;
@@ -9,6 +10,7 @@ import flight_service.exception.NotFoundException;
 import flight_service.exception.ServerException;
 import flight_service.models.FlightClassType;
 import flight_service.models.FlightPackage;
+import flight_service.models.FlightSeats;
 import flight_service.repo.*;
 import flight_service.service.FlightPackageService;
 import flight_service.util.AppUtils;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -35,14 +38,16 @@ public class FlightPackageServiceImpl implements FlightPackageService {
     private final FlightSeatTypeRepo flightSeatTypeRepo;
     private final AirportRepo airportRepo;
     private final FlightAirlineTypeRepo flightAirlineTypeRepo;
+    private final FlightSeatsRepo flightSeatsRepo;
 
     @Autowired
-    public FlightPackageServiceImpl(FlightPackageRepo flightPackageRepo, FlightClassTypeRepo flightClassTypeRepo, FlightSeatTypeRepo flightSeatTypeRepo, AirportRepo airportRepo, FlightAirlineTypeRepo flightAirlineTypeRepo) {
+    public FlightPackageServiceImpl(FlightPackageRepo flightPackageRepo, FlightClassTypeRepo flightClassTypeRepo, FlightSeatTypeRepo flightSeatTypeRepo, AirportRepo airportRepo, FlightAirlineTypeRepo flightAirlineTypeRepo, FlightSeatsRepo flightSeatsRepo) {
         this.flightPackageRepo = flightPackageRepo;
         this.flightClassTypeRepo = flightClassTypeRepo;
         this.flightSeatTypeRepo = flightSeatTypeRepo;
         this.airportRepo = airportRepo;
         this.flightAirlineTypeRepo = flightAirlineTypeRepo;
+        this.flightSeatsRepo = flightSeatsRepo;
     }
 
 
@@ -251,4 +256,90 @@ public class FlightPackageServiceImpl implements FlightPackageService {
             throw new ServerException(e.getMessage());
         }
     }
+
+    public void generateSeatsForFlight(UUID flightId, FlightPackage flightPackage) {
+        Map<Character, SeatType> seatTypeMap = Map.of(
+                'A', SeatType.WINDOW,
+                'B', SeatType.MIDDLE,
+                'C', SeatType.AISLE,
+                'D', SeatType.AISLE,
+                'E', SeatType.MIDDLE,
+                'F', SeatType.WINDOW
+        );
+
+        int flightRows = flightPackage.getAvailableSeats()/6;
+        int availableSeats = flightPackage.getAvailableSeats();
+
+        for (int row = 1; row <= flightRows; row++) {
+
+            for (char col = 'A'; col <= 'F'; col++) {
+
+                if (availableSeats==5){
+                    String seatNumber = row + "" + col;
+                    FlightSeats seat = new FlightSeats();
+                    seat.setSeatNumber(seatNumber);
+                    seat.setBooked(false);
+                    seat.setFlightId(flightId);
+                    flightSeatsRepo.save(seat);
+
+                    if (col == 'E'){
+                        col ='F';
+                    }
+                } else if (availableSeats==4) {
+                    String seatNumber = row + "" + col;
+                    FlightSeats seat = new FlightSeats();
+                    seat.setSeatNumber(seatNumber);
+                    seat.setBooked(false);
+                    seat.setFlightId(flightId);
+                    flightSeatsRepo.save(seat);
+
+                    if (col == 'D'){
+                        col ='F';
+                    }
+                } else if (availableSeats==3) {
+                    String seatNumber = row + "" + col;
+                    FlightSeats seat = new FlightSeats();
+                    seat.setSeatNumber(seatNumber);
+                    seat.setBooked(false);
+                    seat.setFlightId(flightId);
+                    flightSeatsRepo.save(seat);
+
+                    if (col == 'C'){
+                        col ='F';
+                    }
+                } else if (availableSeats==2) {
+                    String seatNumber = row + "" + col;
+                    FlightSeats seat = new FlightSeats();
+                    seat.setSeatNumber(seatNumber);
+                    seat.setBooked(false);
+                    seat.setFlightId(flightId);
+                    flightSeatsRepo.save(seat);
+
+                    if (col == 'B'){
+                        col ='F';
+                    }
+                } else if (availableSeats==1) {
+                    String seatNumber = row + "" + col;
+                    FlightSeats seat = new FlightSeats();
+                    seat.setSeatNumber(seatNumber);
+                    seat.setBooked(false);
+                    seat.setFlightId(flightId);
+                    flightSeatsRepo.save(seat);
+
+                    col = 'F';
+                }else {
+                    String seatNumber = row + "" + col;
+                    FlightSeats seat = new FlightSeats();
+                    seat.setSeatNumber(seatNumber);
+                    seat.setBooked(false);
+                    seat.setFlightId(flightId);
+                    flightSeatsRepo.save(seat);
+                }
+
+            }
+
+            availableSeats = availableSeats-6;
+        }
+    }
+
 }

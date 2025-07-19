@@ -102,10 +102,19 @@ public class AppUtils {
      * This method is used to get authenticated user id.
      * @return UUID string
      * @auther Emmanuel Yidana
-     * @createdAt 19h May 2025
+     * @createdAt 19th May 2025
      */
     public static String getAuthenticatedUserId(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    /**
+     * This method is used to log an error message in the catch exception block.
+     * @auther Emmanuel Yidana
+     * @createdAt 19th july 2025
+     */
+    public static void logException(String message, String value){
+        log.info(message, value);
     }
 
     public static final ExampleMatcher SEARCH_CONDITION_MATCH_ALL = ExampleMatcher.matchingAll()

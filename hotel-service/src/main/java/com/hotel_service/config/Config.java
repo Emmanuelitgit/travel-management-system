@@ -7,10 +7,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import javax.print.attribute.standard.Media;
 
 import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
@@ -48,5 +52,12 @@ public class Config {
     @Bean
     AuditorAware auditorAware(){
         return new AuditorAwareImpl();
+    }
+
+    @Bean
+    WebClient webClient(){
+        return WebClient.builder()
+                .baseUrl("http://localhost:9090")
+                .build();
     }
 }

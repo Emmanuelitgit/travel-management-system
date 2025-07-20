@@ -37,7 +37,7 @@ public class Config {
         return httpSecurity
                 .authorizeHttpRequests((auth)->{
                     auth
-                            .anyRequest().authenticated();
+                            .anyRequest().permitAll();
                 })
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -55,9 +55,10 @@ public class Config {
     }
 
     @Bean
-    WebClient webClient(){
+    public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("")
+                .defaultHeader("User-Agent", "hotel-service") // important
                 .build();
     }
+
 }

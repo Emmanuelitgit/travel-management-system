@@ -62,18 +62,27 @@ public class ServiceCalls {
      * */
     public Mono<HotelLocationResponse> getHotelLocation(String query) {
         return webClient.get()
-                .uri(appProperties.getNominatimUrl()+query)
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("nominatim.openstreetmap.org")
+                        .path("/search")
+                        .queryParam("q", query)
+                        .queryParam("format", "json") // REQUIRED
+                        .build()
+                )
+                .header("User-Agent", "hotel-service") // REQUIRED by Nominatim
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response ->
-                        response.bodyToMono(String.class) // Optional: read error message
+                        response.bodyToMono(String.class)
                                 .flatMap(msg -> Mono.error(new BadRequestException("Bad Request: " + msg)))
                 )
                 .onStatus(HttpStatusCode::is5xxServerError, response ->
                         response.bodyToMono(String.class)
                                 .flatMap(msg -> Mono.error(new ServerException("Server Error: " + msg)))
                 )
-                .bodyToMono(new ParameterizedTypeReference<ApiResponse<HotelLocationResponse>>() {})
-                .map(ApiResponse::getData);
+                .bodyToMono(HotelLocationResponse[].class) // Nominatim returns an array
+                .map(responses -> responses.length > 0 ? responses[0] : null); // Return first result
     }
+
 
 }

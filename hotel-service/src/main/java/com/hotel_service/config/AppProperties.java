@@ -12,4 +12,5 @@ import org.springframework.stereotype.Component;
 public class AppProperties {
     private String flightServiceUrl;
     private String userServiceUrl;
+    private String nominatimUrl;
 }

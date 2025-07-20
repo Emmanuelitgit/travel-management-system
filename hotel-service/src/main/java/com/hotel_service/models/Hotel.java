@@ -22,8 +22,10 @@ public class Hotel extends AuditorData {
     private String name;
     @NotNull(message = "city cannot be null")
     private String city;
-    @NotNull(message = "location cannot be null")
-    private String location;
+    @NotNull(message = "longitude cannot be null")
+    private String longitude;
+    @NotNull(message = "latitude cannot be null")
+    private String latitude;
     @NotNull(message = "country cannot be null")
     private String country;
     private String amenities;

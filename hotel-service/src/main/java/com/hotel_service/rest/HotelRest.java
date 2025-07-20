@@ -52,4 +52,10 @@ public class HotelRest {
         log.info("In get hotel record by id controller->>>d:->>>{}", hotelId);
         return hotelService.getHotelById(hotelId);
     }
+
+    @GetMapping("/location")
+    public ResponseEntity<ResponseDTO> getHotelLocation(@RequestParam String query){
+        log.info("In get hotel location controller->>>");
+        return hotelService.getHotelLocation(query);
+    }
 }

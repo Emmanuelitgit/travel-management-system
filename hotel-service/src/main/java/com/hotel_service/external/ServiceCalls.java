@@ -80,9 +80,8 @@ public class ServiceCalls {
                         response.bodyToMono(String.class)
                                 .flatMap(msg -> Mono.error(new ServerException("Server Error: " + msg)))
                 )
-                .bodyToMono(HotelLocationResponse[].class) // Nominatim returns an array
+                .bodyToMono(HotelLocationResponse[].class)
                 .map(responses -> responses.length > 0 ? responses[0] : null); // Return first result
     }
-
 
 }

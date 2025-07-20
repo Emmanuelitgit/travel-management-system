@@ -57,7 +57,7 @@ public class Config {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .defaultHeader("User-Agent", "hotel-service") // important
+                .defaultHeader("User-Agent", "hotel-service")
                 .build();
     }
 

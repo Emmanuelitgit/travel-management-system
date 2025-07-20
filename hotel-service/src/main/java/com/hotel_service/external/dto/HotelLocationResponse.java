@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HotelLocationResponse {
     private String name;
-    private String displayName;
-    private double latitude;
-    private double longitude;
+    private String display_name;
+    private double lat;
+    private double lon;
 
     private String houseNumber;
     private String road;
